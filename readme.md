@@ -1,9 +1,9 @@
-# Titel van project
+# I-track
 
-**VOORNAAM NAAM:** A B
+**VOORNAAM NAAM:** Andrei Vasilache
 
-**Sparringpartner:** C D
+**Sparringpartner:** Warre Snaet
 
-**Projectsamenvatting in max 10 woorden:** E
+**Projectsamenvatting in max 10 woorden:** Gps-tracker voor elektrische step
 
-**Projecttitel:** F
+**Projecttitel:** I-track
