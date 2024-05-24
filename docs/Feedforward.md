@@ -1,12 +1,12 @@
 # Projectgegevens
 
-**VOORNAAM NAAM:** A B
+**VOORNAAM NAAM:** Andrei Vasilache
 
-**Sparringpartner:** C D
+**Sparringpartner:** Warre Snaet
 
-**Projectsamenvatting in max 10 woorden:** E
+**Projectsamenvatting in max 10 woorden:** GPS-tracker voor elektrische step
 
-**Projecttitel:** F
+**Projecttitel:** I-track
 
 # Tips voor feedbackgesprekken
 
@@ -32,38 +32,43 @@
 
 # Feedforward gesprekken
 
-## Gesprek 1 (Datum: xx/xx/2024)
+## Gesprek 1 (Datum: 23/05/2024)
 
-Lector:
+Lector: Pieter-Jan
 
-Vragen voor dit gesprek:
+Vragen voor dit gesprek: 
 
-- vraag 1: V
-
-Dit is de feedback op mijn vragen.
-
-- feedback 1: G
-
-## Gesprek 2 (Datum: xx/xx/2024)
-
-Lector:
-
-Vragen voor dit gesprek:
-
-- vraag 1: V
+- vraag 1: Wat kan er beter op mijn fritzing schema?
 
 Dit is de feedback op mijn vragen.
 
-- feedback 1: G
+- feedback : ldr herschakelen met mcp3008,draden zoals SDA/SLC en TX RX mogen een andere kleur hebben ,proberen op schuine rechten eruit te halen
 
-## Gesprek 3 (Datum: xx/xx/2024)
 
-Lector:
+
+## Gesprek 2 (Datum: 24/25/2024)
+
+Lector: Stijn Walcarius
 
 Vragen voor dit gesprek:
 
-- [x] vraag 1: V
+- vraag 1: Is het database binnen de normen?
 
 Dit is de feedback op mijn vragen.
 
-- feedback 1: G
+- feedback : snelheid eruit -> geen berekening opslagen, niet echt onderhoudsvriendelijk -> want dan moet een nieuwe tabel erbij komen wanneer nieuwe sensor erbij.
+ maar gaat te moeilijk worden dus mag je gewoon zo laten. 
+Naamrit toevoegen -> wanneer je rit shared dan naam hebben voor de rit
+
+## Gesprek 3 (Datum: 24/05/2024)
+
+Lector: Geert Deslovere 
+
+Vragen voor dit gesprek:
+
+- [x] vraag 1:  Mag ik de (actuator) LED-strip veranderen door een 7*4 segment display om daarop mijn snelheid op af te spelen? Is het fritzing schema inorde?
+
+Dit is de feedback op mijn vragen.
+
+- feedback 1: Ja dat mag.
+- Fritzing schema was nog niet ok : te weinig poorten om alles rechtstreeks aan te sluiten op de pi => lcd scherm geschakelt met pcf en 7*4 segment display geschakelt met shifterregister
