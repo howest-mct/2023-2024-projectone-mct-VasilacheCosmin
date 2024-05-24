@@ -34,7 +34,7 @@
 
 ## Gesprek 1 (Datum: 23/05/2024)
 
-Lector: Pieter-Jan
+Lector: Pieter-Jan Vidts
 
 Vragen voor dit gesprek: 
 
@@ -42,7 +42,9 @@ Vragen voor dit gesprek:
 
 Dit is de feedback op mijn vragen.
 
-- feedback : ldr herschakelen met mcp3008,draden zoals SDA/SLC en TX RX mogen een andere kleur hebben ,proberen op schuine rechten eruit te halen
+- feedback 1: ldr herschakelen met mcp3008
+- feedback 2: draden zoals SDA/SLC en TX RX mogen een andere kleur hebben
+- feedback 3: proberen op schuine rechten eruit te halen
 
 
 
@@ -56,13 +58,13 @@ Vragen voor dit gesprek:
 
 Dit is de feedback op mijn vragen.
 
-- feedback : snelheid eruit -> geen berekening opslagen, niet echt onderhoudsvriendelijk -> want dan moet een nieuwe tabel erbij komen wanneer nieuwe sensor erbij.
- maar gaat te moeilijk worden dus mag je gewoon zo laten. 
-Naamrit toevoegen -> wanneer je rit shared dan naam hebben voor de rit
+- feedback 1: snelheid eruit -> geen berekening opslagen
+- feedback 3: niet echt onderhoudsvriendelijk -> want dan moet een nieuwe tabel erbij komen wanneer nieuwe sensor erbij. maar gaat te moeilijk worden dus mag je gewoon zo laten. 
+- feedback2 : Naamrit toevoegen -> wanneer je rit shared dan naam hebben voor de rit
 
 ## Gesprek 3 (Datum: 24/05/2024)
 
-Lector: Geert Deslovere 
+Lector: Geert Desloovere 
 
 Vragen voor dit gesprek:
 
@@ -71,4 +73,4 @@ Vragen voor dit gesprek:
 Dit is de feedback op mijn vragen.
 
 - feedback 1: Ja dat mag.
-- Fritzing schema was nog niet ok : te weinig poorten om alles rechtstreeks aan te sluiten op de pi => lcd scherm geschakelt met pcf en 7*4 segment display geschakelt met shifterregister
+- feedback 2: Fritzing schema was nog niet ok : te weinig poorten om alles rechtstreeks aan te sluiten op de pi => lcd scherm geschakelt met pcf en 7*4 segment display geschakelt met shifterregister
