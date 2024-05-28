@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPU6050 Data</title>
+  <link rel="stylesheet" href="style/screen.css">
+  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"></script>
+  <script src="script/datahandler.js"></script>
+  <script src="script/app.js"></script>
+</head>
+<body>
+    <h1>MPU6050 Sensor Data</h1>
+    <div id="sensor-data">
+        <p><strong>Timestamp:</strong> <span id="timestamp">N/A</span></p>
+        <p><strong>Acceleration X:</strong> <span id="accel_x">N/A</span></p>
+        <p><strong>Acceleration Z:</strong> <span id="accel_z">N/A</span></p>
+        <p><strong>Instant Speed:</strong> <span id="speed">N/A</span></p>
+    </div>
+</body>
+</html>

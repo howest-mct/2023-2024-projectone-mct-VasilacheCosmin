@@ -1,0 +1,38 @@
+import spidev
+import time
+
+# Functie om data van MCP3008 uit te lezen
+def read_adc(channel):
+    # Controleer of kanaal binnen bereik is
+    if channel < 0 or channel > 7:
+        return -1
+    
+    # Maak een SPI bericht
+    r = spi.xfer2([1, (8 + channel) << 4, 0])
+    
+    # Combineer de data en converteer naar 10-bit waarde
+    adc_out = ((r[1] & 3) << 8) + r[2]
+    return adc_out
+
+# Initialiseer SPI
+spi = spidev.SpiDev()
+spi.open(0, 0)  # Open SPI bus 0, device (CS) 0
+spi.max_speed_hz = 1350000
+
+try:
+    while True:
+        # Lees kanaal 0 (LDR verbonden aan CH0)
+        ldr_value = read_adc(0)
+        print(f"LDR waarde: {ldr_value}")
+
+        # Debugging: lees de ruwe SPI data
+        r = spi.xfer2([1, (8 + 0) << 4, 0])
+        print(f"Ruwe SPI data: {r}")
+        
+        time.sleep(1)  # Wacht 1 seconde voordat de volgende meting wordt uitgevoerd
+
+except KeyboardInterrupt:
+    pass
+
+finally:
+    spi.close()  # Sluit de SPI verbinding
