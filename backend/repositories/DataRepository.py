@@ -32,3 +32,15 @@ class DataRepository:
         sql = "UPDATE lampen SET status = %s"
         params = [status]
         return Database.execute_sql(sql, params)
+
+    @staticmethod
+    def save_mpu_data(timestamp, accel_x,accel_y, accel_z):
+        sql = "INSERT INTO VersnellingsS (InleesTijd, versnelling_X, versnelling_Y,versnelling_Z) VALUES (%s, %s, %s, %s)"
+        params = (timestamp, accel_x, accel_y,accel_z)
+        Database.execute_sql(sql, params)
+
+    @staticmethod
+    def save_ldr_data(timestamp, ldr_value):
+        sql = "INSERT INTO LichtintensiteitS (InleesTijd, Meting) VALUES (%s, %s)"
+        params = (timestamp, ldr_value)
+        Database.execute_sql(sql, params)
