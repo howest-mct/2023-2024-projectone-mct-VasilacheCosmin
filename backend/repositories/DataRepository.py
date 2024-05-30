@@ -44,3 +44,22 @@ class DataRepository:
         sql = "INSERT INTO LichtintensiteitS (InleesTijd, Meting) VALUES (%s, %s)"
         params = (timestamp, ldr_value)
         Database.execute_sql(sql, params)
+
+
+    @staticmethod
+    def save_session(timestamp):
+        sql = """
+        INSERT INTO Rit (StartTijd, EindTijd) 
+        VALUES (%s, null); 
+        """
+        params = [timestamp]
+        return Database.execute_sql(sql, params)
+
+
+
+    @staticmethod
+    def end_session(timestamp):
+        sql = """UPDATE Rit SET EindTijd = %s WHERE idRit = (SELECT MAX(idRit) FROM Rit);"""
+        params = [timestamp]
+        return Database.execute_sql(sql, params)
+    

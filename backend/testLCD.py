@@ -1,25 +1,9 @@
 import RPi.GPIO as GPIO
 import time
 import subprocess
-#import serial
-#import serial.serialutil
 from LCD_klasse import LCD
 
 
-# had het heel graag op deze manier gedaan, maar dit gaf telkens opnieuw een RuntimeError: Failed to add adge detection. Ik heb op meerdere kanalen om feedback gevraagd. (mct discord, oude forums,..)
-
-# GPIO.setup(joystickbtn, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-# def increase_counter(channel):
-#     global counter
-#     counter += 1
-#     if counter > 3:
-#         counter = 0
-
-
-# GPIO.add_event_detect(joystickbtn, GPIO.FALLING, callback=increase_counter, bouncetime=200)
-
-# Define GPIO mode and setup buttons and joysticks
 GPIO.setmode(GPIO.BCM)
 
 
@@ -57,10 +41,6 @@ def display_everything():
         lcd.write_message("IP wlan0:", 1)
         lcd.write_message(ip_addresses[2], 2)
             
-           
-
-
-# Main loop
 try:
     while True:
         display_everything()

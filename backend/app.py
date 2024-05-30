@@ -10,16 +10,42 @@ from datetime import datetime
 import spidev
 from MCP3008 import MCP3008
 from testSensor import MPU6050
+from LCD_klasse import LCD
+import subprocess
+import RPi.GPIO as GPIO
+from gps import GPSClient
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'Thisismyveryverysecretkeyformyflask'
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent', ping_interval=0.5)
 CORS(app)
 
-# voor je het backend draait moet je eerst 'cd front/' -> "python3 -m http.server 9000"
-# dit gaat ervoor zorgen dat de frontend draait op poort 9000 ipv 5501 (poort 5501 wilt niet werken for some reason)
+reading_thread = None
+reading_thread_stop_event = threading.Event()
 
-def read_and_emit_mpu_data(mpu, socketio):
+counter = 0
+status = 0
+t = 0
+prev_time = None
+ip_display_last_update = 0
+ip_display_state = 0
+ip_addresses = []
+
+GPIO.setmode(GPIO.BCM)
+
+# Voor je het backend draait moet je eerst 'cd front/' -> "python3 -m http.server 9000"
+# Dit gaat ervoor zorgen dat de frontend draait op poort 9000 ipv 5501 (poort 5501 wilt niet werken for some reason)
+
+def initialize_sensors():
+    global mpu, mcp, lcd #, gps_client
+    mpu = MPU6050()
+    mcp = MCP3008()
+    lcd = LCD()
+    #gps_client = GPSClient()
+
+
+
+def read_and_emit_mpu_data(mpu, socketio, stop_event):
     interval = 1
     vx, vy, vz = 0, 0, 0
     prev_time = time.time()
@@ -28,7 +54,7 @@ def read_and_emit_mpu_data(mpu, socketio):
     acceleration_threshold = 0.02
 
     try:
-        while True:
+        while not stop_event.is_set():
             accel_x, accel_y, accel_z = mpu.read_accel_data()
             accel_x -= mpu.offset_x
             accel_y -= mpu.offset_y
@@ -65,12 +91,10 @@ def read_and_emit_mpu_data(mpu, socketio):
     except KeyboardInterrupt:
         print("MPU6050 data reading stopped")
 
-def read_and_emit_ldr_data(mcp, socketio):
+def read_and_emit_ldr_data(mcp, socketio, stop_event):
     try:
-        while True:
+        while not stop_event.is_set():
             ldr_value = mcp.read_adc(0)
-            #valueair = mcp.read_adc(1)
-            #print(valueair)
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             print(f"LDR waarde: {ldr_value}")
             save_ldr_data_to_db(timestamp, ldr_value)
@@ -79,59 +103,111 @@ def read_and_emit_ldr_data(mcp, socketio):
     except KeyboardInterrupt:
         print("LDR data reading stopped")
 
-"""dit code is toegevoegd na dat het werkte"""
+"""def read_and_emit_gps_data(gps_client, socketio, stop_event):
+    try:
+        while not stop_event.is_set():
+            data = gps_client.receive_data()
+            if data:
+                gps_info = gps_client.parse_data(data)
+                if gps_info:
+                    print(f"Latitude: {gps_info['lat']}, Longitude: {gps_info['lon']}, Speed: {gps_info['speed']} m/s")
+                    # Save GPS data to DB (assuming a function save_gps_data_to_db is defined)
+                    # save_gps_data_to_db(gps_info['timestamp'], gps_info['lat'], gps_info['lon'], gps_info['speed'])
+                    socketio.emit('B2F_GPS_DATA', gps_info)
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("GPS data reading stopped")"""
+
+
+
+def get_ip_addresses():
+    ip_addresses = []
+    ip_a_output = subprocess.check_output(["ip", "a"]).decode("utf-8")
+    for line in ip_a_output.split("\n"):
+        if "inet " in line and not "inet6" in line:
+            ip_address = line.split()[1].split("/")[0]
+            ip_addresses.append(ip_address)
+    return ip_addresses
+
+def display_ip():
+    while True:
+        ip_addresses = get_ip_addresses()
+        if len(ip_addresses) > 2:
+            ip_address = ip_addresses[2]
+        else:
+            ip_address = "No WLAN IP"
+        if len(ip_address) > 16:
+            ip_address = ip_address[:16]  # Zorg ervoor dat het IP-adres niet langer is dan 16 tekens
+        lcd.write_message("IP wlan0:", 1)
+        lcd.write_message(ip_address, 2)
+        time.sleep(10)  # Update every 10 seconds
 
 # Functie om MPU6050 gegevens op te slaan in de database
-def save_mpu_data_to_db(timestamp, accel_x, accel_z, speed):
-    DataRepository.save_mpu_data(timestamp, accel_x, accel_z, speed)
+def save_mpu_data_to_db(timestamp, accel_x, accel_y, accel_z):
+    DataRepository.save_mpu_data(timestamp, accel_x, accel_y, accel_z)
 
 # Functie om LDR gegevens op te slaan in de database
 def save_ldr_data_to_db(timestamp, ldr_value):
     DataRepository.save_ldr_data(timestamp, ldr_value)
-
-"""tot hier"""
-
 
 # Webserver en SocketIO
 @app.route('/')
 def hallo():
     return render_template('index.html')
 
-#@socketio.on('connect')
-#def initial_connection(auth):
-#    print('A new client connected')
-#    emit('B2F_status_lampen', {'lampen': DataRepository.read_status_lampen()}, broadcast=False)
-#    # Emit initial LDR and MPU data
-#    ldr_value = mcp.read_adc(0)
-#    emit('B2F_LDR_DATA', {'ldr_value': ldr_value})
-#    mpu_data = mpu.read_accel_data()
-#    emit('B2F_MPU6050_DATA', {'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'accel_x': mpu_data[0], 'accel_z': mpu_data[1], 'speed': 0})
-
 @socketio.on('connect')
 def initial_connection(auth):
     print('A new client connected')
 
-def webserver():
-    print("webserver started")
-    socketio.run(app, debug=False, host='0.0.0.0')
+@socketio.on('start_measurement')
+def handle_start_measurement():
+    global reading_thread, reading_thread_stop_event, mpu, mcp
+    if reading_thread is None or not reading_thread.is_alive():
+        start_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        save_session(start_time)
+        reading_thread_stop_event.clear()
 
-def start_thread():
-    #threading.Thread(target=webserver, daemon=True).start()
-    # Start MPU6050 in een aparte thread
-    global mpu
-    mpu = MPU6050()
-    threading.Thread(target=read_and_emit_mpu_data, args=(mpu, socketio), daemon=True).start()
-    #Start MCP3008 (LDR) in een aparte thread
-    global mcp
-    mcp = MCP3008()
-    threading.Thread(target=read_and_emit_ldr_data, args=(mcp, socketio), daemon=True).start()
+        reading_thread = threading.Thread(target=read_and_emit_ldr_data, args=(mcp, socketio, reading_thread_stop_event), daemon=True)
+        reading_thread.start()
+
+        #reading_thread = threading.Thread(target=read_and_emit_gps_data, args=(gps_client, socketio, reading_thread_stop_event), daemon=True)
+        #reading_thread.start()
+        
+        # Start MPU6050 in een aparte thread
+        threading.Thread(target=read_and_emit_mpu_data, args=(mpu, socketio, reading_thread_stop_event), daemon=True).start()
+        
+        print('Measurement started')
+        print(start_time)
+        emit('measurement_started', {'status': 'started'})
+
+@socketio.on('stop_measurement')
+def handle_stop_measurement():
+    global reading_thread_stop_event
+    if reading_thread and reading_thread.is_alive():
+        reading_thread_stop_event.set()
+        reading_thread.join()
+        print('Measurement stopped')
+        emit('measurement_stopped', {'status': 'stopped'})
+        end_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        end_session(end_time)
+
+def save_session(timestamp):
+    DataRepository.save_session(timestamp)
+
+def end_session(timestamp):
+    DataRepository.end_session(timestamp)
+
+def webserver():
+    print("Webserver started")
+    socketio.run(app, debug=False, host='0.0.0.0')
 
 if __name__ == '__main__':
     try:
         print("**** Starting APP ****")
-        start_thread()
-        socketio.run(app, debug=False, host='0.0.0.0')
+        initialize_sensors()
+        threading.Thread(target=display_ip, daemon=True).start()  # Start LCD IP display thread
+        webserver()
     except KeyboardInterrupt:
         print('KeyboardInterrupt exception is caught')
     finally:
-        print("finished")
+        print("Finished")

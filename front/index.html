@@ -6,22 +6,36 @@
     <link rel="stylesheet" type="text/css" href="/style/style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="/script/app2.js"></script>
-
+    <style>
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
     <h1>Sensor Data</h1>
-    <div>
+    <div id="ldrContainer" class="hidden">
         <h2>LDR Waarde:</h2>
         <p>LDR waarde:<span id="ldr">0</span></p>
     </div>
-    <div>
+    <div id="mpuContainer" class="hidden">
         <h2>MPU6050 Data:</h2>
         <p>Timestamp: <span id="mpu6050-timestamp">0</span> </p>
         <p>Versnelling X:<span id="mpu6050-accel-x">0</span></p>
         <p>Versnelling Y:<span id="mpu6050-accel-y">0</span></p>
         <p>Versnelling Z:<span id="mpu6050-accel-z">0</span> </p>
         <p>Ogenblikkelijke snelheid:<span id="mpu6050-speed">0</span> </p>
+    </div>
+        <div id="gpsContainer" class="hidden">
+            <h2>GPS Data:</h2>
+            <p>Latitude:<span id="gps-Lat">0</span></p>
+            <p>Longitude:<span id="gps-long">0</span></p>
+            <p>Speed:<span id="gps-speed">0</span> </p>
+        </div>
+    <div>
+        <button id="startButton">Start Meten</button>
+        <button id="stopButton">Stop Meten</button>
     </div>
 </body>
 
