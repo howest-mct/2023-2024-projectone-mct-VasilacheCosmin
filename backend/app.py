@@ -69,6 +69,8 @@ def read_and_emit_ldr_data(mcp, socketio):
     try:
         while True:
             ldr_value = mcp.read_adc(0)
+            #valueair = mcp.read_adc(1)
+            #print(valueair)
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             print(f"LDR waarde: {ldr_value}")
             save_ldr_data_to_db(timestamp, ldr_value)

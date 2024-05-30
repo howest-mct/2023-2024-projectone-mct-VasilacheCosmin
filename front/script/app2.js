@@ -19,6 +19,7 @@ const listenToSocket = function () {
         console.log('Data MPU ontvangen', data)
         document.getElementById('mpu6050-timestamp').innerHTML = 'Timestamp: ' + data.timestamp;
         document.getElementById('mpu6050-accel-x').innerHTML = data.accel_x.toFixed(2);
+        document.getElementById('mpu6050-accel-y').innerHTML = data.accel_y.toFixed(2);
         document.getElementById('mpu6050-accel-z').innerHTML = data.accel_z.toFixed(2);
         document.getElementById('mpu6050-speed').innerHTML = data.speed.toFixed(2);
     });
