@@ -75,6 +75,38 @@ Dit is de feedback op mijn vragen.
 - feedback 1: Ja dat mag.
 - feedback 2: Fritzing schema was nog niet ok : te weinig poorten om alles rechtstreeks aan te sluiten op de pi => lcd scherm geschakelt met pcf en 7*4 segment display geschakelt met shifterregister
 
+
+## MV1 (Datum: 28/05/2024)
+
+Lector: Geert Desloovere + Claudia Eeckhout + Dieter Roobrouck
+
+Vragen voor dit gesprek:
+
+- [x] vraag 1:  Geen vragen maar voorstellen van het project
+
+Dit is de feedback op mijn vragen.
+
+- feedback 1: op werkelijke website geen vakjargon gebruiken zoals  'ldr'  maar wel -> lichtwaarde
+- feedback 2: snelheid halen uit gps sensor niet met mpu6050
+- feedback 3: juiste rubrieken gebruiken op toggle 
+- feedback 4: fritzing nog updaten /nog nieuw slot boeken voor fritzing na te kijken
+- feedback 5: github nog in orde brengen volledig
+
+
+## Gesprek 4 (Datum: 29/05/2024)
+
+Lector: Pieter-Jan
+
+Vragen voor dit gesprek:
+
+- [x] vraag 1:  Is het fritzing schema inorde?
+- [x] vraag 2:  Enige tips gevraagd over de chassis van het gps-tracker om het device zo klein mogelijk te krijgen?
+
+Dit is de feedback op mijn vragen.
+
+- feedback 1: Fritzing is in het algemeen wel inorde. De MPU component is niet duidelijk op het schema en moet een postage komen met meer verduidelijking. De veiligheidweerstand op de knop moet 470 ohm zijn in plaats van 220hm. De weerstand die geschakelt is op de LDR moet 10k ohm zijn. De draden op het breadbord schema mochten rechter staan. De draden op het schema mogen niet over andere componenten geplaatst worden. Draden die naar dezelfde pinnen moeten (parrallel geschakelt) mochten dezelfde kleur hebben voor de duidelijkheid.
+- feedback 2: Gebruik van persplaat pcb om geen breadbord te gebruiken die veel plaats inneemt. Zo'n pcb persplaat is ook een goeie oplossing voor de  pcf en accelerator omdat die parallel geschakelt moeten worden op de I2C bus. 
+
 ## MV1 (Datum: 28/05/2024)
 
 Lector: Geert Desloovere + Claudia Eeckhout + Dieter Roobrouck
