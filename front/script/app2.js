@@ -1,3 +1,5 @@
+`use strict`
+
 const lanIP = `${window.location.hostname}:5000`;
 const socketio = io(lanIP);
 

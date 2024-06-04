@@ -2,6 +2,11 @@ import socket
 import json
 import time
 
+#sudo systemctl start gpsd
+#sudo systemctl enable gpsd
+
+
+
 class GPSClient:
     def __init__(self, host="localhost", port=2947):
         self.host = host

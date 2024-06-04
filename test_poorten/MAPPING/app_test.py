@@ -7,18 +7,18 @@ from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 import smbus
 import math
-import numpy as np
-from collections import deque
-from scipy.signal import butter, filtfilt, find_peaks
-
-from classes.mpu6050 import PunchSpeedSensor
-from classes.FSR import ForceSensitiveResistor
-from classes.heart import MAX30102
-
-# Initialize the sensor
-sensor = PunchSpeedSensor()
-power = ForceSensitiveResistor()
-heart = MAX30102()
+#import numpy as np
+#from collections import deque
+#from scipy.signal import butter, filtfilt, find_peaks
+#
+#from classes.mpu6050 import PunchSpeedSensor
+#from classes.FSR import ForceSensitiveResistor
+#from classes.heart import MAX30102
+#
+## Initialize the sensor
+#sensor = PunchSpeedSensor()
+#power = ForceSensitiveResistor()
+#heart = MAX30102()
 
 # Flask application setup
 app = Flask(__name__)
