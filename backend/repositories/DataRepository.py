@@ -34,15 +34,15 @@ class DataRepository:
         return Database.execute_sql(sql, params)
 
     @staticmethod
-    def save_mpu_data(timestamp, accel_x,accel_y, accel_z):
-        sql = "INSERT INTO VersnellingsS (InleesTijd, versnelling_X, versnelling_Y,versnelling_Z) VALUES (%s, %s, %s, %s)"
-        params = (timestamp, accel_x, accel_y,accel_z)
+    def save_mpu_data(timestamp, accel_x,accel_y, accel_z, ritid):
+        sql = "INSERT INTO VersnellingsS (InleesTijd, versnelling_X, versnelling_Y,versnelling_Z, RitID) VALUES (%s, %s, %s, %s, %s)"
+        params = (timestamp, accel_x, accel_y,accel_z, ritid)
         Database.execute_sql(sql, params)
 
     @staticmethod
-    def save_ldr_data(timestamp, ldr_value):
-        sql = "INSERT INTO LichtintensiteitS (InleesTijd, Meting) VALUES (%s, %s)"
-        params = (timestamp, ldr_value)
+    def save_ldr_data(timestamp, ldr_value, ritid):
+        sql = "INSERT INTO LichtintensiteitS (InleesTijd, Meting , RitID) VALUES (%s, %s , %s)"
+        params = (timestamp, ldr_value, ritid)
         Database.execute_sql(sql, params)
 
 
@@ -55,11 +55,39 @@ class DataRepository:
         params = [timestamp]
         return Database.execute_sql(sql, params)
 
-
-
     @staticmethod
     def end_session(timestamp):
         sql = """UPDATE Rit SET EindTijd = %s WHERE idRit = (SELECT MAX(idRit) FROM Rit);"""
         params = [timestamp]
         return Database.execute_sql(sql, params)
     
+    @staticmethod
+    def get_ritID():
+        sql = "SELECT idRit from Rit group by idRit desc limit 1"
+        return Database.get_rows(sql)
+    
+    @staticmethod
+    def read_alles_lichtintensiteit():
+        sql = "SELECT * FROM LichtintensiteitS"
+        return Database.get_rows(sql)
+    
+    @staticmethod
+    def read_alles_lichtintensiteit_byID():
+        sql = "SELECT * FROM LichtintensiteitS where RitID is not null"
+        return Database.get_rows(sql)
+    
+    @staticmethod
+    def read_lichtintensiteit_by_rit_id(id):
+        sql = "select * from LichtintensiteitS where RitID = %s"
+        params = [id]
+        return Database.get_rows(sql,params)
+    
+    @staticmethod
+    def read_lichtintensiteit_TODAY(startTijd,eindTijd):
+        sql = "    SELECT * FROM LichtintensiteitS WHERE InleesTijd >= %s AND InleesTijd <= %s"
+        params = [startTijd,eindTijd]
+        return Database.get_rows(sql,params)
+    
+
+
+

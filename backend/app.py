@@ -1,12 +1,12 @@
 import threading
 import time
 from repositories.DataRepository import DataRepository
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, logging, render_template, request
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 import smbus
 import math
-from datetime import datetime
+from datetime import date, datetime
 import spidev
 from MCP3008 import MCP3008
 from testSensor import MPU6050
@@ -15,10 +15,13 @@ import subprocess
 import RPi.GPIO as GPIO
 from gps import GPSClient
 
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'Thisismyveryverysecretkeyformyflask'
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent', ping_interval=0.5)
 CORS(app)
+
+endpoint = '/api/v1'
 
 reading_thread = None
 reading_thread_stop_event = threading.Event()
@@ -82,11 +85,15 @@ def read_and_emit_mpu_data(mpu, socketio, stop_event):
             print(f"Ogenblikkelijke snelheid: {instant_speed:.2f} m/s")
             print(f"Timestamp: {timestamp}")
 
+            rit_data = DataRepository.get_ritID()
+            print(rit_data[0]['idRit'])
+            ritid = rit_data[0]['idRit']
+
             # Sla de gegevens op in de database
-            save_mpu_data_to_db(timestamp, accel_x, accel_y, accel_z)
+            save_mpu_data_to_db(timestamp, accel_x, accel_y, accel_z, ritid)
 
             # Emit de gegevens via SocketIO
-            socketio.emit('B2F_MPU6050_DATA', {'timestamp': timestamp, 'accel_x': accel_x, 'accel_y': accel_y, 'accel_z': accel_z, 'speed': instant_speed})
+            socketio.emit('B2F_MPU6050_DATA', {'timestamp': timestamp, 'accel_x': accel_x, 'accel_y': accel_y, 'accel_z': accel_z, 'speed': instant_speed, 'ritid': ritid})
             time.sleep(interval)
     except KeyboardInterrupt:
         print("MPU6050 data reading stopped")
@@ -96,9 +103,12 @@ def read_and_emit_ldr_data(mcp, socketio, stop_event):
         while not stop_event.is_set():
             ldr_value = mcp.read_adc(0)
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            rit_data = DataRepository.get_ritID()
+            print(rit_data[0]['idRit'])
+            ritid = rit_data[0]['idRit']
             print(f"LDR waarde: {ldr_value}")
-            save_ldr_data_to_db(timestamp, ldr_value)
-            socketio.emit('B2F_LDR_DATA', {'ldr_value': ldr_value})
+            save_ldr_data_to_db(timestamp, ldr_value, ritid)
+            socketio.emit('B2F_LDR_DATA', {'ldr_value': ldr_value , 'idrit' : ritid})
             time.sleep(1)
     except KeyboardInterrupt:
         print("LDR data reading stopped")
@@ -143,17 +153,105 @@ def display_ip():
         time.sleep(10)  # Update every 10 seconds
 
 # Functie om MPU6050 gegevens op te slaan in de database
-def save_mpu_data_to_db(timestamp, accel_x, accel_y, accel_z):
-    DataRepository.save_mpu_data(timestamp, accel_x, accel_y, accel_z)
+def save_mpu_data_to_db(timestamp, accel_x, accel_y, accel_z,ritid):
+    DataRepository.save_mpu_data(timestamp, accel_x, accel_y, accel_z,ritid)
 
 # Functie om LDR gegevens op te slaan in de database
-def save_ldr_data_to_db(timestamp, ldr_value):
-    DataRepository.save_ldr_data(timestamp, ldr_value)
+def save_ldr_data_to_db(timestamp, ldr_value, ritid):
+    DataRepository.save_ldr_data(timestamp, ldr_value, ritid)
 
 # Webserver en SocketIO
 @app.route('/')
 def hallo():
     return render_template('index.html')
+
+
+@app.route('/index2.html')
+def index2():
+    return render_template('index2.html')
+
+
+
+@app.route(f'{endpoint}/licht/<int:rit_id>/', methods=['GET'])
+def get_licht_by_rit_id(rit_id):
+    if request.method == 'GET':
+        data = DataRepository.read_lichtintensiteit_by_rit_id(rit_id)
+        if data:
+            return jsonify(bestemmingen=data), 200
+        else:
+            return jsonify({"error": "Data not found"}), 404
+        
+
+@app.route(f'{endpoint}/licht/gemiddelde/', methods=['GET'])
+def get_gemiddelde_licht_per_rit():
+    try:
+        data = DataRepository.read_alles_lichtintensiteit_byID()
+        #print(f"Data received: {data}")
+        if data:
+            # Bereken gemiddelde per ritID
+            rit_data = {}
+            for item in data:
+                rit_id = item['RitID']
+                meting = item['Meting']
+                timestamp = item['InleesTijd']
+                if rit_id not in rit_data:
+                    rit_data[rit_id] = {'metingen': [], 'timestamps': []}
+                rit_data[rit_id]['metingen'].append(meting)
+                rit_data[rit_id]['timestamps'].append(timestamp)
+            
+            gemiddelde_data = []
+            for rit_id, waarden in rit_data.items():
+                gemiddelde = sum(waarden['metingen']) / len(waarden['metingen'])
+                eerste_timestamp = waarden['timestamps'][0]  # Gebruik de eerste timestamp
+                gemiddelde_data.append({
+                    'rit_id': rit_id,
+                    'gemiddelde': gemiddelde,
+                    'first_timestamp': eerste_timestamp
+                })
+            
+            #print(f"Calculated averages: {gemiddelde_data}")
+            return jsonify(bestemmingen=gemiddelde_data), 200
+        else:
+            print("No data found")
+            return jsonify({"error": "Data not found"}), 404
+    except Exception as e:
+        print("Exception occurred while processing the request")
+        return jsonify({"error": str(e)}), 500
+    
+
+
+@app.route(f'{endpoint}/licht/today/', methods=['GET'])
+def get_today_licht():
+    try:
+        # Huidige datum
+        today_start = datetime.combine(date.today(), datetime.min.time())
+        today_end = datetime.combine(date.today(), datetime.max.time())
+
+        data = DataRepository.read_lichtintensiteit_TODAY(today_start, today_end)
+        #print(f"Data received for today: {data}")
+
+        if data:
+            return jsonify(bestemmingen=data), 200
+        else:
+            print("No data found for today")
+            return jsonify({"error": "Data not found"}), 404
+    except Exception as e:
+        print("Exception occurred while processing the request")
+        return jsonify({"error": str(e)}), 500
+
+    
+
+@app.route(endpoint + '/licht/', methods=['GET'])
+def get_licht():
+    if request.method == 'GET':
+        return jsonify(bestemmingen=DataRepository.read_alles_lichtintensiteit()), 200
+    # het is niet nodig om de andere methods te voorzien.
+
+@app.route(endpoint + '/licht/id/', methods=['GET'])
+def read_alles_lichtintensiteit_byID():
+    if request.method == 'GET':
+        return jsonify(bestemmingen=DataRepository.read_alles_lichtintensiteit_byID()), 200
+    # het is niet nodig om de andere methods te voorzien.
 
 @socketio.on('connect')
 def initial_connection(auth):
@@ -179,6 +277,7 @@ def handle_start_measurement():
         print('Measurement started')
         print(start_time)
         emit('measurement_started', {'status': 'started'})
+        
 
 @socketio.on('stop_measurement')
 def handle_stop_measurement():
