@@ -73,7 +73,7 @@ class DataRepository:
     
     @staticmethod
     def read_alles_lichtintensiteit_byID():
-        sql = "SELECT * FROM LichtintensiteitS where RitID is not null"
+        sql = "SELECT distinct RitID FROM LichtintensiteitS where RitID is not null"
         return Database.get_rows(sql)
     
     @staticmethod
@@ -87,6 +87,15 @@ class DataRepository:
         sql = "    SELECT * FROM LichtintensiteitS WHERE InleesTijd >= %s AND InleesTijd <= %s"
         params = [startTijd,eindTijd]
         return Database.get_rows(sql,params)
+    
+
+    @staticmethod
+    def save_gps_data(timestamp, lat,lon,speed, ritid):
+        sql = "INSERT INTO GPSsensor (inleesTijd, Coordinaat_X,Coordinaat_Y,snelheid , RitID) VALUES (%s, %s , %s,%s,%s)"
+        params = (timestamp, lat,lon,speed, ritid)
+        Database.execute_sql(sql, params)
+    
+
     
 
 

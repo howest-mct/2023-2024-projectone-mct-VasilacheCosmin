@@ -19,18 +19,18 @@ const listenToUI = function () {
   const mpuContainer = document.getElementById('mpuContainer');
   const gpsContainer = document.getElementById('gpsContainer');
   const searchButton = document.getElementById('searchButton');
-  const todayButton = document.getElementById('todayButton');
+  // const todayButton = document.getElementById('todayButton');
 
-  if (startButton && stopButton && ldrContainer && mpuContainer && gpsContainer && todayButton) {
+  if (startButton && stopButton && ldrContainer && mpuContainer && gpsContainer) {
     startButton.addEventListener('click', function() {
       console.log('Startknop ingedrukt');
       startMeasuring();
       ldrContainer.classList.remove('hidden');
       mpuContainer.classList.remove('hidden');
       gpsContainer.classList.remove('hidden');
-      todayButton.addEventListener('click', function() {
-      loadTodayData();
-    });
+      // todayButton.addEventListener('click', function() {
+      // loadTodayData();
+    // });
       
     });
 
@@ -84,15 +84,15 @@ const listenToSocket = function () {
   });
 
   socketio.on('B2F_GPS_DATA', function(data) {
-    console.log('Data GPS ontvangen', data);
+    console.log('GPS data ontvangen:', data);
     const latElement = document.getElementById('gps-Lat');
     const lonElement = document.getElementById('gps-long');
     const speedElement = document.getElementById('gps-speed');
 
     if (latElement && lonElement && speedElement) {
-      latElement.innerHTML = data.gps_info['lat'].toFixed(2);
-      lonElement.innerHTML = data.gps_info['lon'].toFixed(2);
-      speedElement.innerHTML = data.gps_info['speed'].toFixed(2);
+      latElement.innerHTML = parseFloat(data.lat).toFixed(6);
+      lonElement.innerHTML = parseFloat(data.lon).toFixed(6);
+      speedElement.innerHTML = parseFloat(data.speed).toFixed(2);
     }
   });
 
@@ -112,104 +112,104 @@ const listenToSocket = function () {
     console.log('Verbinding met socket webserver verbroken');
   });
 };
-
-const fetchData = async (url) => {
-  const response = await fetch(url);
-  const data = await response.json();
-  return data.bestemmingen;
-};
-
-const createChart = (elementId, data, title, labels) => {
-  const options = {
-    series: [{
-      name: title,
-      data: data
-    }],
-    chart: {
-      type: 'area',
-      height: 350,
-      zoom: {
-        enabled: false
-      }
-    },
-    dataLabels: {
-      enabled: false
-    },
-    stroke: {
-      curve: 'straight'
-    },
-    title: {
-      text: title,
-      align: 'left'
-    },
-    subtitle: {
-      text: 'Price Movements',
-      align: 'left'
-    },
-    labels: labels,
-    xaxis: {
-      type: 'datetime',
-    },
-    yaxis: {
-      min: 0,
-      max: 1024,
-      opposite: true
-    },
-    legend: {
-      horizontalAlign: 'left'
-    }
-  };
-
-  const chart = new ApexCharts(document.querySelector(elementId), options);
-  chart.render();
-};
-
-const initCharts = async (ritId) => {
-  const data = await fetchData(`http://${lanIP}/api/v1/licht/${ritId}/`);
-  createChart('#chart1', data.map(item => item.Meting), 'Lichtintensiteit', data.map(item => item.InleesTijd));
-};
-
-const initAverageChart = async () => {
-  const data = await fetchData(`http://${lanIP}/api/v1/licht/gemiddelde/`);
-  createChart('#chart2', data.map(item => item.gemiddelde), 'Gemiddelde licht per rit', data.map(item => item.first_timestamp));
-}
-
-
-
-const loadTodayData = async () => {
-  const data = await fetchData(`http://${lanIP}/api/v1/licht/today/`);
-  console.log('Data for today:', data); // Log de data om te controleren of deze correct is
-
-  const chartContainer = document.getElementById('chartContainer');
-  chartContainer.innerHTML = ''; // Clear previous charts
-
-  // Groepeer de data op rit_id
-  const groupedData = data.reduce((acc, item) => {
-    if (!acc[item.rit_id]) {
-      acc[item.rit_id] = [];
-    }
-    acc[item.rit_id].push(item);
-    return acc;
-  }, {});
-
-  // Maak een grafiek voor elke rit
-  Object.keys(groupedData).forEach((ritId, index) => {
-    const chartData = groupedData[ritId].map(item => item.meting);
-    const chartLabels = groupedData[ritId].map(item => item.InleesTijd);
-    const chartId = `chart${index}`;
-    const chartDiv = document.createElement('div');
-    chartDiv.id = chartId;
-    chartContainer.appendChild(chartDiv);
-
-    createChart(`#${chartId}`, chartData, `Rit ${ritId}`, chartLabels);
-  });
-};
-
+//
+//const fetchData = async (url) => {
+//  const response = await fetch(url);
+//  const data = await response.json();
+//  return data.bestemmingen;
+//};
+////
+//const createChart = (elementId, data, title, labels) => {
+//  const options = {
+//    series: [{
+//      name: title,
+//      data: data
+//    }],
+//    chart: {
+//      type: 'area',
+//      height: 350,
+//      zoom: {
+//        enabled: false
+//      }
+//    },
+//    dataLabels: {
+//      enabled: false
+//    },
+//    stroke: {
+//      curve: 'straight'
+//    },
+//    title: {
+//      text: title,
+//      align: 'left'
+//    },
+//    subtitle: {
+//      text: 'Price Movements',
+//      align: 'left'
+//    },
+//    labels: labels,
+//    xaxis: {
+//      type: 'datetime',
+//    },
+//    yaxis: {
+//      min: 0,
+//      max: 1024,
+//      opposite: true
+//    },
+//    legend: {
+//      horizontalAlign: 'left'
+//    }
+//  };
+//
+//  const chart = new ApexCharts(document.querySelector(elementId), options);
+//  chart.render();
+//};
+//
+//const initCharts = async (ritId) => {
+//  const data = await fetchData(`http://${lanIP}/api/v1/licht/${ritId}/`);
+//  createChart('#chart1', data.map(item => item.Meting), 'Lichtintensiteit', data.map(item => item.InleesTijd));
+//};
+//
+//const initAverageChart = async () => {
+//  const data = await fetchData(`http://${lanIP}/api/v1/licht/gemiddelde/`);
+//  createChart('#chart2', data.map(item => item.gemiddelde), 'Gemiddelde licht per rit', data.map(item => item.first_timestamp));
+//}
+//
+//
+//
+//const loadTodayData = async () => {
+//  const data = await fetchData(`http://${lanIP}/api/v1/licht/today/`);
+//  console.log('Data for today:', data); // Log de data om te controleren of deze correct is
+//
+//  const chartContainer = document.getElementById('chartContainer');
+//  chartContainer.innerHTML = ''; // Clear previous charts
+//
+//  // Groepeer de data op rit_id
+//  const groupedData = data.reduce((acc, item) => {
+//    if (!acc[item.rit_id]) {
+//      acc[item.rit_id] = [];
+//    }
+//    acc[item.rit_id].push(item);
+//    return acc;
+//  }, {});
+//
+//  // Maak een grafiek voor elke rit
+//  Object.keys(groupedData).forEach((ritId, index) => {
+//    const chartData = groupedData[ritId].map(item => item.meting);
+//    const chartLabels = groupedData[ritId].map(item => item.InleesTijd);
+//    const chartId = `chart${index}`;
+//    const chartDiv = document.createElement('div');
+//    chartDiv.id = chartId;
+//    chartContainer.appendChild(chartDiv);
+//
+//    createChart(`#${chartId}`, chartData, `Rit ${ritId}`, chartLabels);
+//  });
+//};
+//
 const init = function () {
   console.info('DOM geladen');
   listenToUI();
   listenToSocket();
-  initAverageChart();
+  //initAverageChart();
 };
 
 document.addEventListener('DOMContentLoaded', init);

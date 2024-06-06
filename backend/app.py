@@ -14,6 +14,7 @@ from LCD_klasse import LCD
 import subprocess
 import RPi.GPIO as GPIO
 from gps import GPSClient
+from klasseDisplay import SevenSegmentDisplay 
 
 
 app = Flask(__name__)
@@ -40,11 +41,12 @@ GPIO.setmode(GPIO.BCM)
 # Dit gaat ervoor zorgen dat de frontend draait op poort 9000 ipv 5501 (poort 5501 wilt niet werken for some reason)
 
 def initialize_sensors():
-    global mpu, mcp, lcd #, gps_client
+    global mpu, mcp, lcd, gps_client , display7
     mpu = MPU6050()
     mcp = MCP3008()
     lcd = LCD()
-    #gps_client = GPSClient()
+    gps_client = GPSClient()
+    display7 = SevenSegmentDisplay()
 
 
 
@@ -113,22 +115,36 @@ def read_and_emit_ldr_data(mcp, socketio, stop_event):
     except KeyboardInterrupt:
         print("LDR data reading stopped")
 
-"""def read_and_emit_gps_data(gps_client, socketio, stop_event):
+
+def read_and_emit_gps_data(gps_client, socketio, stop_event):
     try:
         while not stop_event.is_set():
             data = gps_client.receive_data()
             if data:
-                gps_info = gps_client.parse_data(data)
-                if gps_info:
-                    print(f"Latitude: {gps_info['lat']}, Longitude: {gps_info['lon']}, Speed: {gps_info['speed']} m/s")
-                    # Save GPS data to DB (assuming a function save_gps_data_to_db is defined)
-                    # save_gps_data_to_db(gps_info['timestamp'], gps_info['lat'], gps_info['lon'], gps_info['speed'])
-                    socketio.emit('B2F_GPS_DATA', gps_info)
-            time.sleep(1)
+                gps_data = gps_client.parse_data(data)
+                print(f"Parsed data: {gps_data}")  # Debugging line
+                if gps_data['lat'] is not None and gps_data['lon'] is not None and gps_data['speed'] is not None:
+                    # Zorg ervoor dat de snelheid een float is
+                    try:
+                        speed_mps = float(gps_data['speed'])
+                    except ValueError:
+                        speed_mps = 0.0
+
+                    for x in range(50):
+                        display7.display_speed(speed_mps)
+
+                    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    rit_data = DataRepository.get_ritID()
+                    ritid = rit_data[0]['idRit']
+                    print(f"Emitting GPS data: {gps_data}")
+                    socketio.emit('B2F_GPS_DATA', gps_data)
+                    save_gps_data_to_db(timestamp, gps_data['lat'], gps_data['lon'], gps_data['speed'], ritid)
     except KeyboardInterrupt:
-        print("GPS data reading stopped")"""
-
-
+        print("GPS data reading stopped")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    #finally:
+    #        display7.cleanup()
 
 def get_ip_addresses():
     ip_addresses = []
@@ -159,6 +175,9 @@ def save_mpu_data_to_db(timestamp, accel_x, accel_y, accel_z,ritid):
 # Functie om LDR gegevens op te slaan in de database
 def save_ldr_data_to_db(timestamp, ldr_value, ritid):
     DataRepository.save_ldr_data(timestamp, ldr_value, ritid)
+
+def save_gps_data_to_db(timestamp, lat,lon,speed, ritid):
+    DataRepository.save_gps_data(timestamp, lat,lon,speed, ritid)
 
 # Webserver en SocketIO
 @app.route('/')
@@ -247,7 +266,7 @@ def get_licht():
         return jsonify(bestemmingen=DataRepository.read_alles_lichtintensiteit()), 200
     # het is niet nodig om de andere methods te voorzien.
 
-@app.route(endpoint + '/licht/id/', methods=['GET'])
+@app.route(endpoint + '/licht/alleID/', methods=['GET'])
 def read_alles_lichtintensiteit_byID():
     if request.method == 'GET':
         return jsonify(bestemmingen=DataRepository.read_alles_lichtintensiteit_byID()), 200
@@ -268,8 +287,8 @@ def handle_start_measurement():
         reading_thread = threading.Thread(target=read_and_emit_ldr_data, args=(mcp, socketio, reading_thread_stop_event), daemon=True)
         reading_thread.start()
 
-        #reading_thread = threading.Thread(target=read_and_emit_gps_data, args=(gps_client, socketio, reading_thread_stop_event), daemon=True)
-        #reading_thread.start()
+        reading_thread = threading.Thread(target=read_and_emit_gps_data, args=(gps_client, socketio, reading_thread_stop_event), daemon=True)
+        reading_thread.start()
         
         # Start MPU6050 in een aparte thread
         threading.Thread(target=read_and_emit_mpu_data, args=(mpu, socketio, reading_thread_stop_event), daemon=True).start()
@@ -289,6 +308,8 @@ def handle_stop_measurement():
         emit('measurement_stopped', {'status': 'stopped'})
         end_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         end_session(end_time)
+        display7.clear_display()
+
 
 def save_session(timestamp):
     DataRepository.save_session(timestamp)
@@ -310,3 +331,4 @@ if __name__ == '__main__':
         print('KeyboardInterrupt exception is caught')
     finally:
         print("Finished")
+        GPIO.cleanup()

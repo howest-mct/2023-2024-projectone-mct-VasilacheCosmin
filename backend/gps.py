@@ -32,19 +32,20 @@ class GPSClient:
             return None
 
     def parse_data(self, data):
+        gps_data = {"lat": None, "lon": None, "speed": None}
         for line in data:
             try:
                 packet = json.loads(line)
                 if packet.get('class') == 'TPV':  # TPV class has the position and velocity information
-                    lat = packet.get('lat', "N/A")
-                    lon = packet.get('lon', "N/A")
-                    speed = packet.get('speed', "N/A")
-                    return f"Latitude: {lat}, Longitude: {lon}, Speed: {speed} m/s"
-            except json.JSONDecodeError:
-                pass
-            except KeyError:
-                pass
-        return None
+                    gps_data['lat'] = packet.get('lat', "N/A")
+                    gps_data['lon'] = packet.get('lon', "N/A")
+                    gps_data['speed'] = packet.get('speed', "N/A")
+                    return gps_data
+            except json.JSONDecodeError as e:
+                print(f"JSON decode error: {e}")
+            except KeyError as e:
+                print(f"Key error: {e}")
+        return gps_data
 
     def run(self):
         try:

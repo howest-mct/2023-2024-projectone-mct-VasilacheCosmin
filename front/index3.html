@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sessie Grafieken</title>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="/script/datahandler.js"></script>
+    <script src="/script/warre_vb.js"></script>
+
+
+</head>
+
+<body>
+    <h1>Sessie Grafieken</h1>
+    <div>
+        <label for="sessionSelect">Selecteer een sessie:</label>
+        <select class="js-sessionid" id="sessionSelect">
+            <option value="">Selecteer een sessie</option>
+        </select>
+    </div>
+    <div class="chart js-chartbpmsession"></div>
+    <!-- <div class="chart js-charttempsession"></div> -->
+    <!-- <div class="chart js-chartairsession"></div> -->
+</body>
+
+</html>
