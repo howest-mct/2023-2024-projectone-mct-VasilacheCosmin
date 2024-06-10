@@ -49,10 +49,14 @@ const showChartsLDR = function (data, time) {
         },
         stroke: {
             curve: 'straight',
+            colors: ['#008FFB'], // Blue line
         },
         title: {
             text: 'LDR',
             align: 'left',
+            style: {
+                color: '#000000' // Black text for the title
+            }
         },
         grid: {
             row: {
@@ -66,11 +70,41 @@ const showChartsLDR = function (data, time) {
                 show: false,
             },
         },
+        tooltip: {
+            theme: 'light', // Light theme for tooltip
+            style: {
+                fontSize: '12px',
+                fontFamily: undefined,
+                background: '#FFFFFF',
+                color: '#000000' // Black text in tooltip
+            },
+            marker: {
+                show: true,
+            },
+            x: {
+                show: true,
+                format: 'HH:mm:ss',
+                formatter: undefined,
+            },
+            y: {
+                title: {
+                    formatter: seriesName => seriesName,
+                },
+            },
+        },
+        yaxis: {
+            labels: {
+                style: {
+                    colors: ['#000000'], // Black text for y-axis labels
+                },
+            },
+        },
     };
 
     chartLDR = new ApexCharts(document.querySelector('.js-chartbpmsession'), options);
     chartLDR.render();
 };
+
 
 //
 //const showChartsMPU = function (data, time) {

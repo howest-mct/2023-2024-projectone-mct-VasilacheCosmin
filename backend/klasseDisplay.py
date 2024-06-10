@@ -79,7 +79,7 @@ class SevenSegmentDisplay:
             pattern = self.digit_patterns[digit_value]
             if digit == 1:  # Voeg decimale punt toe aan het tweede cijfer
                 pattern |= 0b00000001
-            print(f"Digit {digit}: {digit_value} - Pattern: {bin(pattern)}")  # Debugging output
+            #print(f"Digit {digit}: {digit_value} - Pattern: {bin(pattern)}")  # Debugging output
             self.write_one_byte(pattern)
             self.select_digit(digit)
             time.sleep(0.005)  # Delay for persistence of vision

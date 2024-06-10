@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Sensor Data</title>
+    <link rel="stylesheet" type="text/css" href="/style/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="/script/app2.js"></script>
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.css' rel='stylesheet' />
+</head>
+
+<body>
+    <div class="navbar">
+        <div class="logo">I-track</div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="track.html">Track</a>
+            <a href="history.html">History</a>
+        </div>
+    </div>
+
+    <div class="track-page">
+        <h1>Sensor Data</h1>
+        <div class="track-info">
+            <div class="track-header">Current Session</div>
+            <div class="track-meters">0 Meters</div>
+            <button id="startButton" class="track-start-button">Start</button>
+            <button id="stopButton" class="track-start-button">Stop</button>
+        </div>
+
+        <div id="ldrContainer" class="hidden">
+            <div class="detail-box">
+                <div class="detail-header">LDR Waarde:</div>
+                <div class="detail-content">LDR waarde: <span id="ldr">0</span></div>
+            </div>
+        </div>
+
+        <div id="mpuContainer" class="hidden">
+            <div class="detail-box">
+                <div class="detail-header">MPU6050 Data:</div>
+                <div class="detail-content">
+                    <p>Timestamp: <span id="mpu6050-timestamp">0</span></p>
+                    <p>Versnelling X: <span id="mpu6050-accel-x">0</span></p>
+                    <p>Versnelling Y: <span id="mpu6050-accel-y">0</span></p>
+                    <p>Versnelling Z: <span id="mpu6050-accel-z">0</span></p>
+                    <p>Ogenblikkelijke snelheid: <span id="mpu6050-speed">0</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="gpsContainer" class="hidden">
+            <div class="detail-box">
+                <div class="detail-header">GPS Data:</div>
+                <div class="detail-content">
+                    <p>Latitude: <span id="gps-Lat">0</span></p>
+                    <p>Longitude: <span id="gps-long">0</span></p>
+                    <p>Speed: <span id="gps-speed">0</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="map-box">
+            <div class="detail-header">Map</div>
+            <div id="map" style="height: 400px;"></div>
+        </div>
+
+        <div>
+            <div class="js-chart"></div>
+        </div>
+
+        <div>
+            <!-- <button onclick="navigateToIndex2()">Ga naar index2.html</button> -->
+            <button onclick="navigateToIndex3()">Ga naar index3.html</button>
+        </div>
+    </div>
+
+    <script>
+        // function navigateToIndex2() {
+        // window.location.href = 'index2.html';
+        // }
+        function navigateToIndex3() {
+            window.location.href = 'index3.html';
+        }
+
+        mapboxgl.accessToken = 'pk.eyJ1IjoiYXJ0aHVybWV5ZnJvaWR0IiwiYSI6ImNsdWJ4eGE5dTBhanUyanAzaTB4ZHN2cW0ifQ.NrOlYkV5MHPVQfUxq8NjjQ';
+        var map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [3.250204343433751, 50.82413300539262],
+            zoom: 15
+        });
+
+        var route = {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [3.250204343433751, 50.82413300539262],
+                    [3.2513396926976457, 50.8247034832341],
+                    [3.2533245272753386, 50.82336154800339],
+                    [3.2520048804783492, 50.82233134931907],
+                    [3.2484659997068808, 50.82005808037462],
+                    [3.246827330313828, 50.819367913620574],
+                    [3.245097623732272, 50.821572577220806]
+                ]
+            }
+        };
+
+        map.on('load', function () {
+            map.addSource('route', {
+                'type': 'geojson',
+                'data': route
+            });
+
+            map.addLayer({
+                'id': 'route',
+                'type': 'line',
+                'source': 'route',
+                'paint': {
+                    'line-color': '#888',
+                    'line-width': 5
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
