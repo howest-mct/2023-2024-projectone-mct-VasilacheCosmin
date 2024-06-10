@@ -34,9 +34,9 @@
 
 ## Gesprek 1 (Datum: 23/05/2024)
 
-Lector: Pieter-Jan Vidts
+Lector: Pieter-Jan Beeckman
 
-Vragen voor dit gesprek: 
+Vragen voor dit gesprek:
 
 - vraag 1: Wat kan er beter op mijn fritzing schema?
 
@@ -45,8 +45,6 @@ Dit is de feedback op mijn vragen.
 - feedback 1: ldr herschakelen met mcp3008
 - feedback 2: draden zoals SDA/SLC en TX RX mogen een andere kleur hebben
 - feedback 3: proberen op schuine rechten eruit te halen
-
-
 
 ## Gesprek 2 (Datum: 24/25/2024)
 
@@ -59,53 +57,21 @@ Vragen voor dit gesprek:
 Dit is de feedback op mijn vragen.
 
 - feedback 1: snelheid eruit -> geen berekening opslagen
-- feedback 3: niet echt onderhoudsvriendelijk -> want dan moet een nieuwe tabel erbij komen wanneer nieuwe sensor erbij. maar gaat te moeilijk worden dus mag je gewoon zo laten. 
+- feedback 3: niet echt onderhoudsvriendelijk -> want dan moet een nieuwe tabel erbij komen wanneer nieuwe sensor erbij. maar gaat te moeilijk worden dus mag je gewoon zo laten.
 - feedback2 : Naamrit toevoegen -> wanneer je rit shared dan naam hebben voor de rit
 
 ## Gesprek 3 (Datum: 24/05/2024)
 
-Lector: Geert Desloovere 
+Lector: Geert Desloovere
 
 Vragen voor dit gesprek:
 
-- [x] vraag 1:  Mag ik de (actuator) LED-strip veranderen door een 7*4 segment display om daarop mijn snelheid op af te spelen? Is het fritzing schema inorde?
+- [x] vraag 1: Mag ik de (actuator) LED-strip veranderen door een 7\*4 segment display om daarop mijn snelheid op af te spelen? Is het fritzing schema inorde?
 
 Dit is de feedback op mijn vragen.
 
 - feedback 1: Ja dat mag.
-- feedback 2: Fritzing schema was nog niet ok : te weinig poorten om alles rechtstreeks aan te sluiten op de pi => lcd scherm geschakelt met pcf en 7*4 segment display geschakelt met shifterregister
-
-
-## MV1 (Datum: 28/05/2024)
-
-Lector: Geert Desloovere + Claudia Eeckhout + Dieter Roobrouck
-
-Vragen voor dit gesprek:
-
-- [x] vraag 1:  Geen vragen maar voorstellen van het project
-
-Dit is de feedback op mijn vragen.
-
-- feedback 1: op werkelijke website geen vakjargon gebruiken zoals  'ldr'  maar wel -> lichtwaarde
-- feedback 2: snelheid halen uit gps sensor niet met mpu6050
-- feedback 3: juiste rubrieken gebruiken op toggle 
-- feedback 4: fritzing nog updaten /nog nieuw slot boeken voor fritzing na te kijken
-- feedback 5: github nog in orde brengen volledig
-
-
-## Gesprek 4 (Datum: 29/05/2024)
-
-Lector: Pieter-Jan
-
-Vragen voor dit gesprek:
-
-- [x] vraag 1:  Is het fritzing schema inorde?
-- [x] vraag 2:  Enige tips gevraagd over de chassis van het gps-tracker om het device zo klein mogelijk te krijgen?
-
-Dit is de feedback op mijn vragen.
-
-- feedback 1: Fritzing is in het algemeen wel inorde. De MPU component is niet duidelijk op het schema en moet een postage komen met meer verduidelijking. De veiligheidweerstand op de knop moet 470 ohm zijn in plaats van 220hm. De weerstand die geschakelt is op de LDR moet 10k ohm zijn. De draden op het breadbord schema mochten rechter staan. De draden op het schema mogen niet over andere componenten geplaatst worden. Draden die naar dezelfde pinnen moeten (parrallel geschakelt) mochten dezelfde kleur hebben voor de duidelijkheid.
-- feedback 2: Gebruik van persplaat pcb om geen breadbord te gebruiken die veel plaats inneemt. Zo'n pcb persplaat is ook een goeie oplossing voor de  pcf en accelerator omdat die parallel geschakelt moeten worden op de I2C bus. 
+- feedback 2: Fritzing schema was nog niet ok : te weinig poorten om alles rechtstreeks aan te sluiten op de pi => lcd scherm geschakelt met pcf en 7\*4 segment display geschakelt met shifterregister
 
 ## MV1 (Datum: 28/05/2024)
 
@@ -113,16 +79,15 @@ Lector: Geert Desloovere + Claudia Eeckhout + Dieter Roobrouck
 
 Vragen voor dit gesprek:
 
-- [x] vraag 1:  Geen vragen maar voorstellen van het project
+- [x] vraag 1: Geen vragen maar voorstellen van het project
 
 Dit is de feedback op mijn vragen.
 
-- feedback 1: op werkelijke website geen vakjargon gebruiken zoals  'ldr'  maar wel -> lichtwaarde
+- feedback 1: op werkelijke website geen vakjargon gebruiken zoals 'ldr' maar wel -> lichtwaarde
 - feedback 2: snelheid halen uit gps sensor niet met mpu6050
-- feedback 3: juiste rubrieken gebruiken op toggle 
+- feedback 3: juiste rubrieken gebruiken op toggle
 - feedback 4: fritzing nog updaten /nog nieuw slot boeken voor fritzing na te kijken
 - feedback 5: github nog in orde brengen volledig
-
 
 ## Gesprek 4 (Datum: 29/05/2024)
 
@@ -130,10 +95,70 @@ Lector: Pieter-Jan
 
 Vragen voor dit gesprek:
 
-- [x] vraag 1:  Is het fritzing schema inorde?
-- [x] vraag 2:  Enige tips gevraagd over de chassis van het gps-tracker om het device zo klein mogelijk te krijgen?
+- [x] vraag 1: Is het fritzing schema inorde?
+- [x] vraag 2: Enige tips gevraagd over de chassis van het gps-tracker om het device zo klein mogelijk te krijgen?
 
 Dit is de feedback op mijn vragen.
 
 - feedback 1: Fritzing is in het algemeen wel inorde. De MPU component is niet duidelijk op het schema en moet een postage komen met meer verduidelijking. De veiligheidweerstand op de knop moet 470 ohm zijn in plaats van 220hm. De weerstand die geschakelt is op de LDR moet 10k ohm zijn. De draden op het breadbord schema mochten rechter staan. De draden op het schema mogen niet over andere componenten geplaatst worden. Draden die naar dezelfde pinnen moeten (parrallel geschakelt) mochten dezelfde kleur hebben voor de duidelijkheid.
-- feedback 2: Gebruik van persplaat pcb om geen breadbord te gebruiken die veel plaats inneemt. Zo'n pcb persplaat is ook een goeie oplossing voor de  pcf en accelerator omdat die parallel geschakelt moeten worden op de I2C bus. 
+- feedback 2: Gebruik van persplaat pcb om geen breadbord te gebruiken die veel plaats inneemt. Zo'n pcb persplaat is ook een goeie oplossing voor de pcf en accelerator omdat die parallel geschakelt moeten worden op de I2C bus.
+
+## MV1 (Datum: 28/05/2024)
+
+Lector: Geert Desloovere + Claudia Eeckhout + Dieter Roobrouck
+
+Vragen voor dit gesprek:
+
+- [x] vraag 1: Geen vragen maar voorstellen van het project
+
+Dit is de feedback op mijn vragen.
+
+- feedback 1: op werkelijke website geen vakjargon gebruiken zoals 'ldr' maar wel -> lichtwaarde
+- feedback 2: snelheid halen uit gps sensor niet met mpu6050
+- feedback 3: juiste rubrieken gebruiken op toggle
+- feedback 4: fritzing nog updaten /nog nieuw slot boeken voor fritzing na te kijken
+- feedback 5: github nog in orde brengen volledig
+
+## Gesprek 4 (Datum: 29/05/2024)
+
+Lector: Pieter-Jan Beeckman
+
+Vragen voor dit gesprek:
+
+- [x] vraag 1: Is het fritzing schema inorde?
+- [x] vraag 2: Enige tips gevraagd over de chassis van het gps-tracker om het device zo klein mogelijk te krijgen?
+
+Dit is de feedback op mijn vragen.
+
+- feedback 1: Fritzing is in het algemeen wel inorde. De MPU component is niet duidelijk op het schema en moet een postage komen met meer verduidelijking. De veiligheidweerstand op de knop moet 470 ohm zijn in plaats van 220hm. De weerstand die geschakelt is op de LDR moet 10k ohm zijn. De draden op het breadbord schema mochten rechter staan. De draden op het schema mogen niet over andere componenten geplaatst worden. Draden die naar dezelfde pinnen moeten (parrallel geschakelt) mochten dezelfde kleur hebben voor de duidelijkheid.
+- feedback 2: Gebruik van persplaat pcb om geen breadbord te gebruiken die veel plaats inneemt. Zo'n pcb persplaat is ook een goeie oplossing voor de pcf en accelerator omdat die parallel geschakelt moeten worden op de I2C bus.
+
+## MV2 (Datum: 4/06/2024)
+
+Lector: Pieter-Jan Beeckman, Stijn Walcarius , Frederik Waeyaert
+
+Vragen voor dit gesprek:
+
+- [x] vraag 1: Geen vragen maar voorstellen van het project
+- [x] vraag 2:
+
+Dit is de feedback op mijn vragen.
+
+- feedback 1: website nog niet gedisgn
+- feedback 2: demo lukte niet door poortprobleem
+- feedback 3: antenne besteld voor gps voor beter bereik
+- feedback 4: GitHub flow kon beter -> meer pushen & branches gebruiken
+- feedback 5: Bera Board niet gemaakt
+
+## gesprek 5 (Datum: 5/06/2024)
+
+Lector: Claudia Eeckhout
+
+Vragen voor dit gesprek:
+
+- [x] vraag 1: Is het desgin inorde?
+- [x] vraag 2:
+
+Dit is de feedback op mijn vragen.
+
+- feedback 1: feedback is niet doorgegaan omdat ik niet had gezien dat het gesprek via Teams was en daardoor spijtig genoeg gemist. Zal nieuwe gesprek boeken.
