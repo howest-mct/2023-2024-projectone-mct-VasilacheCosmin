@@ -1,8 +1,81 @@
-"use strict"
+"use strict";
 
 const lanIP = `${window.location.hostname}:5000`;
-console.log(lanIP);
-const socketio = io(lanIP);
+const socketio = io(`http://${lanIP}`);
+
+let coordinates = [];  // Initialize an empty array to store the route coordinates
+let points = [];       // Initialize an empty array to store the points
+
+
+const shutdown = function () {
+  fetch(`http://${lanIP}/shutdown`, {method: 'POST'})
+  .then(response => {
+    if (response.ok) {
+      alert('Raspberry Pi is shutting down');
+    }
+    else {
+      response.text().then(text => alert(`Shutdown request failed: ${error}`));
+    }
+  })
+  .catch(error => alert(`Shutdown request failed: ${error}`));
+}
+
+const initMap = function() {
+  mapboxgl.accessToken = 'pk.eyJ1IjoiYXJ0aHVybWV5ZnJvaWR0IiwiYSI6ImNsdWJ4eGE5dTBhanUyanAzaTB4ZHN2cW0ifQ.NrOlYkV5MHPVQfUxq8NjjQ';
+  const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [3.250204343433751, 50.82413300539262],
+      zoom: 15
+  });
+
+  map.on('load', function () {
+      map.addSource('route', {
+          'type': 'geojson',
+          'data': {
+              "type": "Feature",
+              "geometry": {
+                  "type": "LineString",
+                  "coordinates": coordinates
+              }
+          }
+      });
+
+      map.addLayer({
+          'id': 'route',
+          'type': 'line',
+          'source': 'route',
+          'paint': {
+              'line-color': '#888',
+              'line-width': 5
+          }
+      });
+
+      map.addSource('points', {
+          'type': 'geojson',
+          'data': {
+              "type": "FeatureCollection",
+              "features": points
+          }
+      });
+
+      map.addLayer({
+          'id': 'points',
+          'type': 'circle',
+          'source': 'points',
+          'paint': {
+              'circle-radius': 6,
+              'circle-color': '#B42222'
+          }
+      });
+
+      console.log('Map loaded and route source added');
+  });
+
+  return map;
+};
+
+let map;
 
 const startMeasuring = function() {
   socketio.emit('start_measurement');
@@ -66,6 +139,11 @@ const listenToSocket = function () {
     }
   });
 
+  
+  socketio.on('measurement_started', function(data) {
+    console.log("Started")
+  });
+
   socketio.on('B2F_MPU6050_DATA', function(data) {
     console.log('Data MPU ontvangen', data);
     const timestampElement = document.getElementById('mpu6050-timestamp');
@@ -94,6 +172,44 @@ const listenToSocket = function () {
       lonElement.innerHTML = parseFloat(data.lon).toFixed(6);
       speedElement.innerHTML = parseFloat(data.speed).toFixed(2);
     }
+
+    // Update the route and points on the map
+    const newCoord = [data.lon, data.lat];
+    coordinates.push(newCoord);
+
+    points.push({
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": newCoord
+        }
+    });
+
+    if (map.getSource('route')) {
+      console.log('Updating route on map with coordinates', coordinates);
+      map.getSource('route').setData({
+        "type": "Feature",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": coordinates
+        }
+      });
+    } else {
+      console.log('Route source not found on map');
+    }
+
+    if (map.getSource('points')) {
+      console.log('Updating points on map with coordinates', points);
+      map.getSource('points').setData({
+        "type": "FeatureCollection",
+        "features": points
+      });
+    } else {
+      console.log('Points source not found on map');
+    }
+
+    // Center the map on the new location
+    map.setCenter(newCoord);
   });
 
   socketio.on('measurement_started', function(data) {
@@ -112,104 +228,12 @@ const listenToSocket = function () {
     console.log('Verbinding met socket webserver verbroken');
   });
 };
-//
-//const fetchData = async (url) => {
-//  const response = await fetch(url);
-//  const data = await response.json();
-//  return data.bestemmingen;
-//};
-////
-//const createChart = (elementId, data, title, labels) => {
-//  const options = {
-//    series: [{
-//      name: title,
-//      data: data
-//    }],
-//    chart: {
-//      type: 'area',
-//      height: 350,
-//      zoom: {
-//        enabled: false
-//      }
-//    },
-//    dataLabels: {
-//      enabled: false
-//    },
-//    stroke: {
-//      curve: 'straight'
-//    },
-//    title: {
-//      text: title,
-//      align: 'left'
-//    },
-//    subtitle: {
-//      text: 'Price Movements',
-//      align: 'left'
-//    },
-//    labels: labels,
-//    xaxis: {
-//      type: 'datetime',
-//    },
-//    yaxis: {
-//      min: 0,
-//      max: 1024,
-//      opposite: true
-//    },
-//    legend: {
-//      horizontalAlign: 'left'
-//    }
-//  };
-//
-//  const chart = new ApexCharts(document.querySelector(elementId), options);
-//  chart.render();
-//};
-//
-//const initCharts = async (ritId) => {
-//  const data = await fetchData(`http://${lanIP}/api/v1/licht/${ritId}/`);
-//  createChart('#chart1', data.map(item => item.Meting), 'Lichtintensiteit', data.map(item => item.InleesTijd));
-//};
-//
-//const initAverageChart = async () => {
-//  const data = await fetchData(`http://${lanIP}/api/v1/licht/gemiddelde/`);
-//  createChart('#chart2', data.map(item => item.gemiddelde), 'Gemiddelde licht per rit', data.map(item => item.first_timestamp));
-//}
-//
-//
-//
-//const loadTodayData = async () => {
-//  const data = await fetchData(`http://${lanIP}/api/v1/licht/today/`);
-//  console.log('Data for today:', data); // Log de data om te controleren of deze correct is
-//
-//  const chartContainer = document.getElementById('chartContainer');
-//  chartContainer.innerHTML = ''; // Clear previous charts
-//
-//  // Groepeer de data op rit_id
-//  const groupedData = data.reduce((acc, item) => {
-//    if (!acc[item.rit_id]) {
-//      acc[item.rit_id] = [];
-//    }
-//    acc[item.rit_id].push(item);
-//    return acc;
-//  }, {});
-//
-//  // Maak een grafiek voor elke rit
-//  Object.keys(groupedData).forEach((ritId, index) => {
-//    const chartData = groupedData[ritId].map(item => item.meting);
-//    const chartLabels = groupedData[ritId].map(item => item.InleesTijd);
-//    const chartId = `chart${index}`;
-//    const chartDiv = document.createElement('div');
-//    chartDiv.id = chartId;
-//    chartContainer.appendChild(chartDiv);
-//
-//    createChart(`#${chartId}`, chartData, `Rit ${ritId}`, chartLabels);
-//  });
-//};
-//
+
 const init = function () {
   console.info('DOM geladen');
   listenToUI();
   listenToSocket();
-  //initAverageChart();
+  map = initMap(); // Initialize the map
 };
 
 document.addEventListener('DOMContentLoaded', init);

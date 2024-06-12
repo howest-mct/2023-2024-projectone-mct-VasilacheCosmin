@@ -16,7 +16,6 @@ import RPi.GPIO as GPIO
 from gps import GPSClient
 from klasseDisplay import SevenSegmentDisplay 
 
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'Thisismyveryverysecretkeyformyflask'
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent', ping_interval=0.5)
@@ -36,6 +35,10 @@ ip_display_state = 0
 ip_addresses = []
 
 GPIO.setmode(GPIO.BCM)
+shutdown_pin = 5
+GPIO.setup(shutdown_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+Aan_Uit_pin = 22
+GPIO.setup(Aan_Uit_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Voor je het backend draait moet je eerst 'cd front/' -> "python3 -m http.server 9000"
 # Dit gaat ervoor zorgen dat de frontend draait op poort 9000 ipv 5501 (poort 5501 wilt niet werken for some reason)
@@ -47,8 +50,6 @@ def initialize_sensors():
     lcd = LCD()
     gps_client = GPSClient()
     display7 = SevenSegmentDisplay()
-
-
 
 def read_and_emit_mpu_data(mpu, socketio, stop_event):
     interval = 1
@@ -114,7 +115,6 @@ def read_and_emit_ldr_data(mcp, socketio, stop_event):
             time.sleep(1)
     except KeyboardInterrupt:
         print("LDR data reading stopped")
-
 
 def read_and_emit_gps_data(gps_client, socketio, stop_event):
     try:
@@ -184,12 +184,9 @@ def save_gps_data_to_db(timestamp, lat,lon,speed, ritid):
 def hallo():
     return render_template('index.html')
 
-
 @app.route('/index2.html')
 def index2():
     return render_template('index2.html')
-
-
 
 @app.route(f'{endpoint}/licht/<int:rit_id>/', methods=['GET'])
 def get_licht_by_rit_id(rit_id):
@@ -200,7 +197,15 @@ def get_licht_by_rit_id(rit_id):
         else:
             return jsonify({"error": "Data not found"}), 404
         
-
+@app.route(f'{endpoint}/GPS/<int:rit_id>/', methods=['GET'])
+def get_gps_by_rit_id(rit_id):
+    if request.method == 'GET':
+        data = DataRepository.read_gps_by_rit_id(rit_id)
+        if data:
+            return jsonify(bestemmingen=data), 200
+        else:
+            return jsonify({"error": "Data not found"}), 404
+        
 @app.route(f'{endpoint}/licht/gemiddelde/', methods=['GET'])
 def get_gemiddelde_licht_per_rit():
     try:
@@ -236,8 +241,6 @@ def get_gemiddelde_licht_per_rit():
     except Exception as e:
         print("Exception occurred while processing the request")
         return jsonify({"error": str(e)}), 500
-    
-
 
 @app.route(f'{endpoint}/licht/today/', methods=['GET'])
 def get_today_licht():
@@ -258,8 +261,6 @@ def get_today_licht():
         print("Exception occurred while processing the request")
         return jsonify({"error": str(e)}), 500
 
-    
-
 @app.route(endpoint + '/licht/', methods=['GET'])
 def get_licht():
     if request.method == 'GET':
@@ -271,6 +272,25 @@ def read_alles_lichtintensiteit_byID():
     if request.method == 'GET':
         return jsonify(bestemmingen=DataRepository.read_alles_lichtintensiteit_byID()), 200
     # het is niet nodig om de andere methods te voorzien.
+
+@app.route(endpoint + '/GPS/alleID/', methods=['GET'])
+def read_alles_GPS_byID():
+    if request.method == 'GET':
+        return jsonify(bestemmingen=DataRepository.read_alles_GPS_byID()), 200
+    # het is niet nodig om de andere methods te voorzien.
+
+@app.route('/shutdown', methods=['POST'])
+def shutdown_socket():
+    shutdown(5)
+
+def shutdown(getal):
+    try:
+        print('Shutdown endpoint called')
+        subprocess.call(['sudo','shutdown','now'])
+        return "",200
+    except Exception as e:
+        print(f'Error occurd: {e}')
+        return str(e),500
 
 @socketio.on('connect')
 def initial_connection(auth):
@@ -295,9 +315,8 @@ def handle_start_measurement():
         
         print('Measurement started')
         print(start_time)
-        emit('measurement_started', {'status': 'started'})
+        socketio.emit('measurement_started', {'status': 'started'})
         
-
 @socketio.on('stop_measurement')
 def handle_stop_measurement():
     global reading_thread_stop_event
@@ -305,11 +324,20 @@ def handle_stop_measurement():
         reading_thread_stop_event.set()
         reading_thread.join()
         print('Measurement stopped')
-        emit('measurement_stopped', {'status': 'stopped'})
+        socketio.emit('measurement_stopped', {'status': 'stopped'})
         end_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         end_session(end_time)
         display7.clear_display()
 
+def aan_uit(channel):
+    print("test")
+    global reading_thread, reading_thread_stop_event
+    if reading_thread is None or not reading_thread.is_alive():
+        # Start metingen
+        handle_start_measurement()
+    else:
+        # Stop metingen
+        handle_stop_measurement()
 
 def save_session(timestamp):
     DataRepository.save_session(timestamp)
@@ -324,6 +352,8 @@ def webserver():
 if __name__ == '__main__':
     try:
         print("**** Starting APP ****")
+        GPIO.add_event_detect(shutdown_pin, GPIO.FALLING, callback=shutdown, bouncetime=200)
+        GPIO.add_event_detect(Aan_Uit_pin, GPIO.FALLING, callback=aan_uit, bouncetime=200)
         initialize_sensors()
         threading.Thread(target=display_ip, daemon=True).start()  # Start LCD IP display thread
         webserver()

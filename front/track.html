@@ -70,60 +70,10 @@
         </div>
 
         <div>
-            <!-- <button onclick="navigateToIndex2()">Ga naar index2.html</button> -->
-            <button onclick="navigateToIndex3()">Ga naar index3.html</button>
+            <h2>POWER</h2>
+            <button class="C-button_pi_off" onclick="shutdown()">OFF</button>
         </div>
     </div>
-
-    <script>
-        // function navigateToIndex2() {
-        // window.location.href = 'index2.html';
-        // }
-        function navigateToIndex3() {
-            window.location.href = 'index3.html';
-        }
-
-        mapboxgl.accessToken = 'pk.eyJ1IjoiYXJ0aHVybWV5ZnJvaWR0IiwiYSI6ImNsdWJ4eGE5dTBhanUyanAzaTB4ZHN2cW0ifQ.NrOlYkV5MHPVQfUxq8NjjQ';
-        var map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v11',
-            center: [3.250204343433751, 50.82413300539262],
-            zoom: 15
-        });
-
-        var route = {
-            "type": "Feature",
-            "geometry": {
-                "type": "LineString",
-                "coordinates": [
-                    [3.250204343433751, 50.82413300539262],
-                    [3.2513396926976457, 50.8247034832341],
-                    [3.2533245272753386, 50.82336154800339],
-                    [3.2520048804783492, 50.82233134931907],
-                    [3.2484659997068808, 50.82005808037462],
-                    [3.246827330313828, 50.819367913620574],
-                    [3.245097623732272, 50.821572577220806]
-                ]
-            }
-        };
-
-        map.on('load', function () {
-            map.addSource('route', {
-                'type': 'geojson',
-                'data': route
-            });
-
-            map.addLayer({
-                'id': 'route',
-                'type': 'line',
-                'source': 'route',
-                'paint': {
-                    'line-color': '#888',
-                    'line-width': 5
-                }
-            });
-        });
-    </script>
 </body>
 
 </html>

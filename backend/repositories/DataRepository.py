@@ -72,13 +72,30 @@ class DataRepository:
         return Database.get_rows(sql)
     
     @staticmethod
+    def read_alles_GPS():
+        sql = "SELECT * FROM GPSsensor"
+        return Database.get_rows(sql)
+    
+    
+    @staticmethod
     def read_alles_lichtintensiteit_byID():
         sql = "SELECT distinct RitID FROM LichtintensiteitS where RitID is not null"
         return Database.get_rows(sql)
     
     @staticmethod
+    def read_alles_GPS_byID():
+        sql = "SELECT distinct RitID FROM GPSsensor where RitID is not null"
+        return Database.get_rows(sql)
+    
+    @staticmethod
     def read_lichtintensiteit_by_rit_id(id):
         sql = "select * from LichtintensiteitS where RitID = %s"
+        params = [id]
+        return Database.get_rows(sql,params)
+    
+    @staticmethod
+    def read_gps_by_rit_id(id):
+        sql = "select * from GPSsensor where RitID = %s"
         params = [id]
         return Database.get_rows(sql,params)
     

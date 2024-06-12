@@ -4,67 +4,13 @@ const lanIP = `${window.location.hostname}:5000`;
 const socketio = io(lanIP);
 
 let sessionid = 0;
-let chartLDR, chartMPU;
+
+let chartLDR, chartMPU; //,chartAir;
+
 let sessionidhtml;
 
-let ldrData, mpuData = [];
+let ldrData, mpuData = [];//, airData = [];
 let chartTime = [];
-
-// Initialize the map and set global variables for routes and points
-const initMap = function () {
-  mapboxgl.accessToken = 'pk.eyJ1IjoiYXJ0aHVybWV5ZnJvaWR0IiwiYSI6ImNsdWJ4eGE5dTBhanUyanAzaTB4ZHN2cW0ifQ.NrOlYkV5MHPVQfUxq8NjjQ';
-  const map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v11',
-    center: [3.250204343433751, 50.82413300539262],
-    zoom: 15
-  });
-
-  map.on('load', function () {
-    map.addSource('route', {
-      'type': 'geojson',
-      'data': {
-        "type": "Feature",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": []
-        }
-      }
-    });
-
-    map.addLayer({
-      'id': 'route',
-      'type': 'line',
-      'source': 'route',
-      'paint': {
-        'line-color': '#888',
-        'line-width': 5
-      }
-    });
-
-    map.addSource('points', {
-      'type': 'geojson',
-      'data': {
-        "type": "FeatureCollection",
-        "features": []
-      }
-    });
-
-    map.addLayer({
-      'id': 'points',
-      'type': 'circle',
-      'source': 'points',
-      'paint': {
-        'circle-radius': 6,
-        'circle-color': '#B42222'
-      }
-    });
-
-    console.log('Map loaded and route source added');
-  });
-
-  window.map = map;
-};
 
 const showChartsLDR = function (data, time) {
     ldrData = data;
@@ -180,46 +126,25 @@ const showSessionID = function (data) {
     }
 };
 
-const showSessionID2 = function (data) {
-    console.log(data);
-
-    for (let i = 0; i < data.bestemmingen.length; i++) {
-        
-        sessionidhtml = document.querySelector('.js-sessionid2');
-
-        let str = `
-            <option value="${data.bestemmingen[i].RitID}">${data.bestemmingen[i].RitID}</option>
-        `;
-
-        sessionidhtml.innerHTML += str;
-    }
-};
-
 const getSessionId = function (data) {
     showSessionID(data);
 };
 
-const getSessionId2 = function (data) {
-    showSessionID2(data);
-};
-
 handleData(`http://${lanIP}/api/v1/licht/alleID/`, getSessionId);
-handleData(`http://${lanIP}/api/v1/GPS/alleID/`, getSessionId2);
 
 // Fetch historical GPS data and update map
-const fetchGPS = async function(data) {
-    console.log("ontvangen gps data" , data)
-    console.log("ontvangen gps.bestemmingen data" , data.bestemmingen)
+const fetchGPSData = async function(RitID) {
+    const response = await fetch(`http://${lanIP}/api/v1/gps/${RitID}/`);
+    const data = await response.json();
 
     let coordinates = [];
-
     if (data.bestemmingen && data.bestemmingen.length > 0) {
         for (let i = 0; i < data.bestemmingen.length; i++) {
-            let item2 = data.bestemmingen[i];
-            coordinates.push([item2.Coordinaat_Y,item2.Coordinaat_X,]);
+            let item = data.bestemmingen[i];
+            coordinates.push([item.lon, item.lat]);
         }
     }
-    console.log("dit is de gepuste list", coordinates)
+
     updateMapWithHistoricalData(coordinates);
 };
 
@@ -247,7 +172,7 @@ const updateMapWithHistoricalData = function(coordinates) {
 
     if (window.map.getSource('points')) {
         window.map.getSource('points').setData({
-            "type": "FeatureCollection",    
+            "type": "FeatureCollection",
             "features": window.points
         });
     }
@@ -260,8 +185,6 @@ const updateMapWithHistoricalData = function(coordinates) {
 
 const init = function () {
     console.log('domcontentloaded');
-    initMap(); // Initialize the map
-
     document.querySelector('.js-sessionid').addEventListener('change', function () {
         let RitID = this.value;
 
@@ -272,18 +195,7 @@ const init = function () {
         console.log('Selected session ID:', RitID);
 
         handleData(`http://${lanIP}/api/v1/licht/${RitID}/`, fetchLDR);
-    }); 
-
-    document.querySelector('.js-sessionid2').addEventListener('change', function () {
-        let RitID = this.value;
-
-        console.log(this.value);
-
-        const sessionid = 1;
-
-        console.log('Selected GPS session ID:', RitID);
-
-        handleData(`http://${lanIP}/api/v1/GPS/${RitID}/`, fetchGPS);
+        fetchGPSData(RitID);  // Fetch and display GPS data for the selected ID
     });
 };
 
