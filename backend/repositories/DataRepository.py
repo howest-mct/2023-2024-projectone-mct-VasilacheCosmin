@@ -34,9 +34,9 @@ class DataRepository:
         return Database.execute_sql(sql, params)
 
     @staticmethod
-    def save_mpu_data(timestamp, accel_x,accel_y, accel_z, ritid):
-        sql = "INSERT INTO VersnellingsS (InleesTijd, versnelling_X, versnelling_Y,versnelling_Z, RitID) VALUES (%s, %s, %s, %s, %s)"
-        params = (timestamp, accel_x, accel_y,accel_z, ritid)
+    def save_mpu_data(timestamp, accel_total, ritid):
+        sql = "INSERT INTO VersnellingsS (InleesTijd, versnelling_total, RitID) VALUES (%s, %s, %s)"
+        params = (timestamp, accel_total, ritid)
         Database.execute_sql(sql, params)
 
     @staticmethod
@@ -83,6 +83,11 @@ class DataRepository:
         return Database.get_rows(sql)
     
     @staticmethod
+    def read_alles_versnelling_byID():
+        sql = "SELECT distinct RitID FROM VersnellingsS where RitID is not null"
+        return Database.get_rows(sql)
+    
+    @staticmethod
     def read_alles_GPS_byID():
         sql = "SELECT distinct RitID FROM GPSsensor where RitID is not null"
         return Database.get_rows(sql)
@@ -96,6 +101,12 @@ class DataRepository:
     @staticmethod
     def read_gps_by_rit_id(id):
         sql = "select * from GPSsensor where RitID = %s"
+        params = [id]
+        return Database.get_rows(sql,params)
+    
+    @staticmethod
+    def read_versnelling_by_rit_id(id):
+        sql = "select * from VersnellingsS where RitID = %s"
         params = [id]
         return Database.get_rows(sql,params)
     

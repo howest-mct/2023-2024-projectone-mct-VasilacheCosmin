@@ -24,38 +24,34 @@
         <h1>Sensor Data</h1>
         <div class="track-info">
             <div class="track-header">Current Session</div>
-            <div class="track-meters">0 Meters</div>
+            <div class="track-meters">Distance: <span id="distance">0</span> meters</div>
+            <div class="track-timer">Duration: <span id="timer">00:00:00</span></div>
             <button id="startButton" class="track-start-button">Start</button>
             <button id="stopButton" class="track-start-button">Stop</button>
         </div>
 
         <div id="ldrContainer" class="hidden">
             <div class="detail-box">
-                <div class="detail-header">LDR Waarde:</div>
+                <div class="detail-header">Licht:</div>
                 <div class="detail-content">LDR waarde: <span id="ldr">0</span></div>
             </div>
         </div>
 
         <div id="mpuContainer" class="hidden">
             <div class="detail-box">
-                <div class="detail-header">MPU6050 Data:</div>
+                <div class="detail-header">Versnelling:</div>
                 <div class="detail-content">
                     <p>Timestamp: <span id="mpu6050-timestamp">0</span></p>
-                    <p>Versnelling X: <span id="mpu6050-accel-x">0</span></p>
-                    <p>Versnelling Y: <span id="mpu6050-accel-y">0</span></p>
-                    <p>Versnelling Z: <span id="mpu6050-accel-z">0</span></p>
-                    <p>Ogenblikkelijke snelheid: <span id="mpu6050-speed">0</span></p>
+                    <p>Versnelling: <span id="mpu6050-accel-total">0</span> m/s²</p>
                 </div>
             </div>
         </div>
 
         <div id="gpsContainer" class="hidden">
             <div class="detail-box">
-                <div class="detail-header">GPS Data:</div>
+                <div class="detail-header">Snelheid:</div>
                 <div class="detail-content">
-                    <p>Latitude: <span id="gps-Lat">0</span></p>
-                    <p>Longitude: <span id="gps-long">0</span></p>
-                    <p>Speed: <span id="gps-speed">0</span></p>
+                    <p>Snelheid: <span id="gps-speed">0</span> km/h</p>
                 </div>
             </div>
         </div>

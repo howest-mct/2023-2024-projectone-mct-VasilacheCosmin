@@ -53,7 +53,6 @@ def initialize_sensors():
 
 def read_and_emit_mpu_data(mpu, socketio, stop_event):
     interval = 1
-    vx, vy, vz = 0, 0, 0
     prev_time = time.time()
     mpu.calibrate_mpu6050()
 
@@ -70,22 +69,12 @@ def read_and_emit_mpu_data(mpu, socketio, stop_event):
             dt = current_time - prev_time
             prev_time = current_time
 
-            vx += accel_x * dt
-            vy += accel_y * dt
-            vz += accel_z * dt
+            # Bereken totale versnelling
+            total_accel = math.sqrt(accel_x**2 + accel_y**2 + accel_z**2)
 
-            if abs(accel_x) < acceleration_threshold:
-                vx *= 0.99
-            if abs(accel_y) < acceleration_threshold:
-                vy *= 0.99
-            if abs(accel_z) < acceleration_threshold:
-                vz *= 0.99
-
-            instant_speed = math.sqrt(vx**2 + vy**2 + vz**2)
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-            print(f"Versnelling: x={accel_x:.2f}, y={accel_y:.2f}, z={accel_z:.2f}")
-            print(f"Ogenblikkelijke snelheid: {instant_speed:.2f} m/s")
+            print(f"Versnelling: totaal={total_accel:.2f} m/s²")
             print(f"Timestamp: {timestamp}")
 
             rit_data = DataRepository.get_ritID()
@@ -93,13 +82,18 @@ def read_and_emit_mpu_data(mpu, socketio, stop_event):
             ritid = rit_data[0]['idRit']
 
             # Sla de gegevens op in de database
-            save_mpu_data_to_db(timestamp, accel_x, accel_y, accel_z, ritid)
+            save_mpu_data_to_db(timestamp, total_accel, ritid)
 
             # Emit de gegevens via SocketIO
-            socketio.emit('B2F_MPU6050_DATA', {'timestamp': timestamp, 'accel_x': accel_x, 'accel_y': accel_y, 'accel_z': accel_z, 'speed': instant_speed, 'ritid': ritid})
+            socketio.emit('B2F_MPU6050_DATA', {'timestamp': timestamp, 'total_accel': total_accel, 'ritid': ritid})
             time.sleep(interval)
     except KeyboardInterrupt:
         print("MPU6050 data reading stopped")
+
+# Functie om MPU6050 gegevens op te slaan in de database, aangepast voor een enkele versnelling
+def save_mpu_data_to_db(timestamp, total_accel, ritid):
+    DataRepository.save_mpu_data(timestamp, total_accel, ritid)
+
 
 def read_and_emit_ldr_data(mcp, socketio, stop_event):
     try:
@@ -169,8 +163,8 @@ def display_ip():
         time.sleep(10)  # Update every 10 seconds
 
 # Functie om MPU6050 gegevens op te slaan in de database
-def save_mpu_data_to_db(timestamp, accel_x, accel_y, accel_z,ritid):
-    DataRepository.save_mpu_data(timestamp, accel_x, accel_y, accel_z,ritid)
+#def save_mpu_data_to_db(timestamp, accel_x, accel_y, accel_z,ritid):
+#    DataRepository.save_mpu_data(timestamp, accel_x, accel_y, accel_z,ritid)
 
 # Functie om LDR gegevens op te slaan in de database
 def save_ldr_data_to_db(timestamp, ldr_value, ritid):
@@ -205,6 +199,18 @@ def get_gps_by_rit_id(rit_id):
             return jsonify(bestemmingen=data), 200
         else:
             return jsonify({"error": "Data not found"}), 404
+        
+
+@app.route(f'{endpoint}/versnelling/<int:rit_id>/', methods=['GET'])
+def get_versnelling_by_rit_id(rit_id):
+    if request.method == 'GET':
+        data = DataRepository.read_versnelling_by_rit_id(rit_id)
+        if data:
+            return jsonify(bestemmingen=data), 200
+        else:
+            return jsonify({"error": "Data not found"}), 404
+        
+
         
 @app.route(f'{endpoint}/licht/gemiddelde/', methods=['GET'])
 def get_gemiddelde_licht_per_rit():
@@ -271,6 +277,13 @@ def get_licht():
 def read_alles_lichtintensiteit_byID():
     if request.method == 'GET':
         return jsonify(bestemmingen=DataRepository.read_alles_lichtintensiteit_byID()), 200
+    # het is niet nodig om de andere methods te voorzien.
+
+
+@app.route(endpoint + '/versnelling/alleID/', methods=['GET'])
+def read_alles_versnelling_byID():
+    if request.method == 'GET':
+        return jsonify(bestemmingen=DataRepository.read_alles_versnelling_byID()), 200
     # het is niet nodig om de andere methods te voorzien.
 
 @app.route(endpoint + '/GPS/alleID/', methods=['GET'])
