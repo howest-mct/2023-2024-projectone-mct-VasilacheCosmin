@@ -155,6 +155,7 @@ def get_ip_addresses():
 def display_info():
     global duration
     while True:
+        lcd.clear_display()
         if session_active:
             hours, remainder = divmod(duration, 3600)
             minutes, seconds = divmod(remainder, 60)
