@@ -28,10 +28,9 @@ const listenToUI = function () {
       ldrContainer.classList.remove('hidden');
       mpuContainer.classList.remove('hidden');
       gpsContainer.classList.remove('hidden');
-      // todayButton.addEventListener('click', function() {
-      // loadTodayData();
-    // });
-      
+      mapContainer.classList.remove('hidden');
+      totalDistance = 0; // Reset distance at the start of measurement
+      document.getElementById('distance').textContent = totalDistance; // Reset distance display
     });
 
     stopButton.addEventListener('click', function() {
@@ -40,6 +39,7 @@ const listenToUI = function () {
       ldrContainer.classList.add('hidden');
       mpuContainer.classList.add('hidden');
       gpsContainer.classList.add('hidden');
+      mapContainer.classList.remove('hidden');
     });
   }
 
@@ -51,6 +51,28 @@ const listenToUI = function () {
       }
     });
   }
+};
+
+const calculateDistance = function(coord1, coord2) {
+  const toRad = function(value) {
+    return value * Math.PI / 180;
+  };
+
+  const lat1 = coord1[1];
+  const lon1 = coord1[0];
+  const lat2 = coord2[1];
+  const lon2 = coord2[0];
+
+  const R = 6371; // Radius of the Earth in km
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c * 1000; // Distance in meters
+
+  return d;
 };
 
 const listenToSocket = function () {
@@ -90,11 +112,56 @@ const listenToSocket = function () {
     const speedElement = document.getElementById('gps-speed');
 
     if (latElement && lonElement && speedElement) {
-      latElement.innerHTML = parseFloat(data.lat).toFixed(6);
-      lonElement.innerHTML = parseFloat(data.lon).toFixed(6);
-      speedElement.innerHTML = parseFloat(data.speed).toFixed(2);
+      latElement.innerHTML = data.lat.toFixed(6);
+      lonElement.innerHTML = data.lon.toFixed(6);
+      speedElement.innerHTML = data.speed.toFixed(2);
     }
+
+    // Update the route and points on the map
+    const newCoord = [data.lon, data.lat];
+    coordinates.push(newCoord);
+
+    if (coordinates.length > 1) {
+      const lastCoord = coordinates[coordinates.length - 2];
+      totalDistance += calculateDistance(lastCoord, newCoord);
+      document.getElementById('distance').textContent = totalDistance.toFixed(2); // Update distance display
+    }
+
+    points.push({
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": newCoord
+        }
+    });
+
+    if (map.getSource('route')) {
+      console.log('Updating route on map with coordinates', coordinates);
+      map.getSource('route').setData({
+        "type": "Feature",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": coordinates
+        }
+      });
+    } else {
+      console.log('Route source not found on map');
+    }
+
+    if (map.getSource('points')) {
+      console.log('Updating points on map with coordinates', points);
+      map.getSource('points').setData({
+        "type": "FeatureCollection",
+        "features": points
+      });
+    } else {
+      console.log('Points source not found on map');
+    }
+
+    // Center the map on the new location
+    map.setCenter(newCoord);
   });
+  
 
   socketio.on('measurement_started', function(data) {
     console.log('Measurement started', data);

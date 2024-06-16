@@ -10,7 +10,7 @@
 - Indien je geen sudo meer bent:
   `sudo -i`
 - `nano /etc/apache2/sites-available/000-default.conf`
-- Gebruik pijltje naar beneden om naar regel te gaan waar nu staat _DocumentRoot /var/www/html_ of `DocumentRoot /home/user/<naam_van_je_repo>/front` en wijzig dit in `DocumentRoot /home/user/<naam_van_je_repo>/front`
+- Gebruik pijltje naar beneden om naar regel te gaan waar nu staat _DocumentRoot /var/www/html_ of `DocumentRoot /home/user/<naam_van_je_repo>/front` en wijzig dit in `DocumentRoot /home/user/2023-2024-projectone-mct-VasilacheCosmin/front`
 - Opslaan doe je door _Ctrl + x_ te doen, gevolgd door `Y` en _Enter_
 - Daarna herstarten we Apache door `service apache2 restart ` te doen
 - Nu moeten we nog de rechten op de root folder juist zetten.
@@ -33,8 +33,8 @@
 
   - Opslaan doe je door _Ctrl + x_ te doen, gevolgd door `Y` en _Enter_
   - Permissies goedzetten:  
-    `sudo chmod o+x /home/user/<naam_van_je_repo>`  
-    `sudo chmod o+x /home/user/<naam_van_je_repo>/front`
+    `sudo chmod o+x /home/user/2023-2024-projectone-mct-VasilacheCosmin`  
+    `sudo chmod o+x /home/user/2023-2024-projectone-mct-VasilacheCosmin/front`
   - Daarna herstarten we Apache door `service apache2 restart ` te doen
   - Kijken of apache correct opgestart is: `service apache2 status` \
     Je moet ongeveer volgende output krijgen:
@@ -49,8 +49,8 @@
   `Description=ProjectOne Project`  
   `After=network.target`  
   `[Service]`  
-  `ExecStart=/home/user/<naam_van_je_repo>/<venv>/bin/python -u /home/user/<naam_van_je_repo>/backend/app.py`  
-  `WorkingDirectory=/home/user/<naam_van_je_repo>/backend`  
+  `ExecStart=/home/user/2023-2024-projectone-mct-VasilacheCosmin/<venv>/bin/python -u /home/user/2023-2024-projectone-mct-VasilacheCosmin/backend/app.py`  
+  `WorkingDirectory=/home/user/2023-2024-projectone-mct-VasilacheCosmin/backend`  
   `StandardOutput=inherit`  
   `StandardError=inherit`  
   `Restart=always`  

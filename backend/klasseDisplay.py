@@ -79,8 +79,10 @@ class SevenSegmentDisplay:
             pattern = self.digit_patterns[digit_value]
             if digit == 1:  # Voeg decimale punt toe aan het tweede cijfer
                 pattern |= 0b00000001
-            print(f"Digit {digit}: {digit_value} - Pattern: {bin(pattern)}")  # Debugging output
+            #print(f"Digit {digit}: {digit_value} - Pattern: {bin(pattern)}")  # Debugging output
             self.write_one_byte(pattern)
+            # print(pattern)
+            # print(digit)
             self.select_digit(digit)
             time.sleep(0.005)  # Delay for persistence of vision
 
@@ -110,10 +112,17 @@ if __name__ == "__main__":
 
     try:
         while True:
-            for speed_mps in simulated_speeds_mps:
-                for x in range(50):
-                    display.display_speed(speed_mps)
-                #time.sleep(1)  # Delay before showing the next speed
+            display.write_one_byte(0b11111111)
+            time.sleep(1)
+            print(1)
+            display.write_one_byte(0)
+            time.sleep(1)
+            print(2)
+
+            # for speed_mps in simulated_speeds_mps:
+            #     for x in range(50):
+            #         display.display_speed(speed_mps)
+            #     #time.sleep(1)  # Delay before showing the next speed
 
     except KeyboardInterrupt as e:
         print(e)

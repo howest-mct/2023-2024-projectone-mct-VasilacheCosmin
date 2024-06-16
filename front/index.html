@@ -16,36 +16,19 @@
 </head>
 
 <body>
-    <h1>Sensor Data</h1>
-    <div id="ldrContainer" class="hidden">
-        <h2>LDR Waarde:</h2>
-        <p>LDR waarde:<span id="ldr">0</span></p>
-        <!-- <p>RITID:<span id="ritID">0</span></p> -->
+    <div class="navbar">
+        <div class="logo">I-track</div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="track.html">Track</a>
+            <a href="history.html">History</a>
+        </div>
     </div>
-    <div id="mpuContainer" class="hidden">
-        <h2>MPU6050 Data:</h2>
-        <p>Timestamp: <span id="mpu6050-timestamp">0</span> </p>
-        <p>Versnelling X:<span id="mpu6050-accel-x">0</span></p>
-        <p>Versnelling Y:<span id="mpu6050-accel-y">0</span></p>
-        <p>Versnelling Z:<span id="mpu6050-accel-z">0</span> </p>
-        <p>Ogenblikkelijke snelheid:<span id="mpu6050-speed">0</span> </p>
-    </div>
-    <div id="gpsContainer" class="hidden">
-        <h2>GPS Data:</h2>
-        <p>Latitude:<span id="gps-Lat">0</span></p>
-        <p>Longitude:<span id="gps-long">0</span></p>
-        <p>Speed:<span id="gps-speed">0</span> </p>
-    </div>
-    <div>
-        <button id="startButton">Start Meten</button>
-        <button id="stopButton">Stop Meten</button>
-    </div>
-    <div>
-        <div class="js-chart"></div>
-    </div>
-    <div>
-        <!-- <button onclick="navigateToIndex2()">Ga naar index2.html</button> -->
-        <button onclick="navigateToIndex3()">Ga naar index3.html</button>
+
+    <div class="home-page">
+        <h1>Welcome to I-track</h1>
+        <p>The most efficient live tracking system for your electric scooter.</p>
+        <button class="start-button">Get Started</button>
     </div>
 
     <script>
