@@ -1,92 +1,69 @@
-"use strict";
+ "use strict";
 
 const lanIP = `${window.location.hostname}:5000`;
 const socketio = io(lanIP);
 
 let sessionid = 0;
-let chartLDR, chartVersnelling, chartSnelheid;
+let chartLDR, chartVersnelling , chartSnelheid;
 let sessionidhtml;
 
 let ldrData, versnellingsData, snelheidData = [];
-let chartTime, chartTime2, chartTime3 = [];
-let totalDistance = 0; // Initialize total distance
+let chartTime,chartTime2, chartTime3 = [];
 
 // Initialize the map and set global variables for routes and points
 const initMap = function () {
-    mapboxgl.accessToken = 'pk.eyJ1IjoiYXJ0aHVybWV5ZnJvaWR0IiwiYSI6ImNsdWJ4eGE5dTBhanUyanAzaTB4ZHN2cW0ifQ.NrOlYkV5MHPVQfUxq8NjjQ';
-    const map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v11',
-        center: [3.250204343433751, 50.82413300539262],
-        zoom: 15
+  mapboxgl.accessToken = 'pk.eyJ1IjoiYXJ0aHVybWV5ZnJvaWR0IiwiYSI6ImNsdWJ4eGE5dTBhanUyanAzaTB4ZHN2cW0ifQ.NrOlYkV5MHPVQfUxq8NjjQ';
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v11',
+    center: [3.250204343433751, 50.82413300539262],
+    zoom: 15
+  });
+
+  map.on('load', function () {
+    map.addSource('route', {
+      'type': 'geojson',
+      'data': {
+        "type": "Feature",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": []
+        }
+      }
     });
 
-    map.on('load', function () {
-        map.addSource('route', {
-            'type': 'geojson',
-            'data': {
-                "type": "Feature",
-                "geometry": {
-                    "type": "LineString",
-                    "coordinates": []
-                }
-            }
-        });
-
-        map.addLayer({
-            'id': 'route',
-            'type': 'line',
-            'source': 'route',
-            'paint': {
-                'line-color': '#888',
-                'line-width': 5
-            }
-        });
-
-        map.addSource('points', {
-            'type': 'geojson',
-            'data': {
-                "type": "FeatureCollection",
-                "features": []
-            }
-        });
-
-        map.addLayer({
-            'id': 'points',
-            'type': 'circle',
-            'source': 'points',
-            'paint': {
-                'circle-radius': 6,
-                'circle-color': '#B42222'
-            }
-        });
-
-        console.log('Map loaded and route source added');
+    map.addLayer({
+      'id': 'route',
+      'type': 'line',
+      'source': 'route',
+      'paint': {
+        'line-color': '#888',
+        'line-width': 5
+      }
     });
 
-    window.map = map;
-};
+    map.addSource('points', {
+      'type': 'geojson',
+      'data': {
+        "type": "FeatureCollection",
+        "features": []
+      }
+    });
 
-const calculateDistance = function(coord1, coord2) {
-    const toRad = function(value) {
-        return value * Math.PI / 180;
-    };
+    map.addLayer({
+      'id': 'points',
+      'type': 'circle',
+      'source': 'points',
+      'paint': {
+        'circle-radius': 6,
+        'circle-color': '#B42222'
+      }
+    });
 
-    const lat1 = coord1[1];
-    const lon1 = coord1[0];
-    const lat2 = coord2[1];
-    const lon2 = coord2[0];
+    console.log('Map loaded and route source added');
+  });
 
-    const R = 6371; // Radius of the Earth in km
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const d = R * c * 1000; // Distance in meters
-
-    return d;
+  window.map = map;
 };
 
 const showChartsLDR = function (data, time) {
@@ -105,8 +82,8 @@ const showChartsLDR = function (data, time) {
             },
         ],
         chart: {
-            height: '100%',
-            width: '100%',
+            height: 200,
+            type: 'line',
             zoom: {
                 enabled: false,
             },
@@ -119,12 +96,10 @@ const showChartsLDR = function (data, time) {
             colors: ['#008FFB'], // Blue line
         },
         title: {
-            text: 'Lichtintensiteit',
-            align: 'center',  // Center the title
+            text: 'LDR',
+            align: 'left',
             style: {
-                color: '#000000', // Black text for the title
-                fontSize: '20px', // Font size for the title
-                fontWeight: 'bold', // Font weight for the title
+                color: '#000000' // Black text for the title
             }
         },
         grid: {
@@ -136,14 +111,8 @@ const showChartsLDR = function (data, time) {
         xaxis: {
             categories: time,
             labels: {
-                show: true,
+                show: false,
             },
-            title: {
-                text: 'Tijdstip',  // X-axis title
-                style: {
-                    color: '#000000' // Black text for the x-axis title
-                }
-            }
         },
         tooltip: {
             theme: 'light', // Light theme for tooltip
@@ -173,18 +142,13 @@ const showChartsLDR = function (data, time) {
                     colors: ['#000000'], // Black text for y-axis labels
                 },
             },
-            title: {
-                text: 'LDR Meting',  // Y-axis title
-                style: {
-                    color: '#000000' // Black text for the y-axis title
-                }
-            }
         },
     };
 
     chartLDR = new ApexCharts(document.querySelector('.js-chartbpmsession'), options);
     chartLDR.render();
 };
+
 
 const showChartsSnelheid = function (data, time) {
     let snelheidData = data;
@@ -202,8 +166,8 @@ const showChartsSnelheid = function (data, time) {
             },
         ],
         chart: {
-            height: '100%',
-            width: '100%',
+            height: 200,
+            type: 'line',
             zoom: {
                 enabled: false,
             },
@@ -216,12 +180,10 @@ const showChartsSnelheid = function (data, time) {
             colors: ['#008FFB'], // Blue line
         },
         title: {
-            text: 'Snelheid',
-            align: 'center',  // Center the title
+            text: 'Snelheid',  // Corrected title
+            align: 'left',
             style: {
-                color: '#000000', // Black text for the title
-                fontSize: '20px', // Font size for the title
-                fontWeight: 'bold', // Font weight for the title
+                color: '#000000' // Black text for the title
             }
         },
         grid: {
@@ -235,12 +197,6 @@ const showChartsSnelheid = function (data, time) {
             labels: {
                 show: true,
             },
-            title: {
-                text: 'Tijdstip',  // X-axis title
-                style: {
-                    color: '#000000' // Black text for the x-axis title
-                }
-            }
         },
         tooltip: {
             theme: 'light', // Light theme for tooltip
@@ -270,18 +226,14 @@ const showChartsSnelheid = function (data, time) {
                     colors: ['#000000'], // Black text for y-axis labels
                 },
             },
-            title: {
-                text: 'Snelheid (km/h)',  // Y-axis title
-                style: {
-                    color: '#000000' // Black text for the y-axis title
-                }
-            }
         },
     };
 
     chartSnelheid = new ApexCharts(document.querySelector('.js-chartSnelheidsession'), options);
     chartSnelheid.render();
 };
+
+
 
 const showChartsVersnelling = function (data, time) {
     versnellingsData = data;
@@ -299,8 +251,8 @@ const showChartsVersnelling = function (data, time) {
             },
         ],
         chart: {
-            height: '100%',
-            width: '100%',
+            height: 200,
+            type: 'line',
             zoom: {
                 enabled: false,
             },
@@ -314,11 +266,9 @@ const showChartsVersnelling = function (data, time) {
         },
         title: {
             text: 'Versnelling',
-            align: 'center',  // Center the title
+            align: 'left',
             style: {
-                color: '#000000', // Black text for the title
-                fontSize: '20px', // Font size for the title
-                fontWeight: 'bold', // Font weight for the title
+                color: '#000000' // Black text for the title
             }
         },
         grid: {
@@ -330,14 +280,8 @@ const showChartsVersnelling = function (data, time) {
         xaxis: {
             categories: time,
             labels: {
-                show: true,
+                show: false,
             },
-            title: {
-                text: 'Tijdstip',  // X-axis title
-                style: {
-                    color: '#000000' // Black text for the x-axis title
-                }
-            }
         },
         tooltip: {
             theme: 'light', // Light theme for tooltip
@@ -367,12 +311,6 @@ const showChartsVersnelling = function (data, time) {
                     colors: ['#000000'], // Black text for y-axis labels
                 },
             },
-            title: {
-                text: 'Versnelling (m/s²)',  // Y-axis title
-                style: {
-                    color: '#000000' // Black text for the y-axis title
-                }
-            }
         },
     };
 
@@ -400,10 +338,13 @@ const showSessionID = function (data) {
     console.log(data);
 
     for (let i = 0; i < data.bestemmingen.length; i++) {
+        
         sessionidhtml = document.querySelector('.js-sessionid');
+
         let str = `
             <option value="${data.bestemmingen[i].RitID}">${data.bestemmingen[i].RitID}</option>
         `;
+
         sessionidhtml.innerHTML += str;
     }
 };
@@ -412,10 +353,13 @@ const showSessionID2 = function (data) {
     console.log(data);
 
     for (let i = 0; i < data.bestemmingen.length; i++) {
+        
         sessionidhtml = document.querySelector('.js-sessionid2');
+
         let str = `
             <option value="${data.bestemmingen[i].RitID}">${data.bestemmingen[i].RitID}</option>
         `;
+
         sessionidhtml.innerHTML += str;
     }
 };
@@ -424,10 +368,13 @@ const showSessionID3 = function (data) {
     console.log(data);
 
     for (let i = 0; i < data.bestemmingen.length; i++) {
+        
         sessionidhtml = document.querySelector('.js-sessionid3');
+
         let str = `
             <option value="${data.bestemmingen[i].RitID}">${data.bestemmingen[i].RitID}</option>
         `;
+
         sessionidhtml.innerHTML += str;
     }
 };
@@ -448,36 +395,27 @@ handleData(`http://${lanIP}/api/v1/licht/alleID/`, getSessionId);
 handleData(`http://${lanIP}/api/v1/GPS/alleID/`, getSessionId2);
 handleData(`http://${lanIP}/api/v1/versnelling/alleID/`, getSessionId3);
 
+// Fetch historical GPS data and update map
 const fetchGPS = async function(data) {
-    console.log("ontvangen gps data", data);
-    console.log("ontvangen gps.bestemmingen data", data.bestemmingen);
+    console.log("ontvangen gps data" , data);
+    console.log("ontvangen gps.bestemmingen data" , data.bestemmingen);
 
     let coordinates = [];
     let snelheidList = [];
     let tijd = [];
-    totalDistance = 0;
 
     if (data.bestemmingen && data.bestemmingen.length > 0) {
         for (let i = 0; i < data.bestemmingen.length; i++) {
             let item2 = data.bestemmingen[i];
-            const newCoord = [item2.Coordinaat_Y, item2.Coordinaat_X];
-            coordinates.push(newCoord);
-            let snelheidKM_H = item2.snelheid * 3.6;
-            snelheidList.push(snelheidKM_H);
+            coordinates.push([item2.Coordinaat_Y, item2.Coordinaat_X]);
+            snelheidList.push(item2.snelheid);  // Correct the structure here
             tijd.push(new Date(item2.inleesTijd).toLocaleTimeString());
-
-            if (i > 0) {
-                totalDistance += calculateDistance(coordinates[i - 1], newCoord);
-            }
         }
     }
 
     console.log("dit is de gepuste list coordinaten", coordinates);
     console.log("dit is de gepuste list snelheid", snelheidList);
     console.log("dit is de gepuste list inleestijd gps", tijd);
-    console.log("Total distance:", totalDistance);
-
-    document.getElementById('distance').textContent = totalDistance.toFixed(2); // Update distance display
 
     updateMapWithHistoricalData(coordinates);
     showChartsSnelheid(snelheidList, tijd);
@@ -496,13 +434,16 @@ const fetchVersnelling = function (data) {
         times2.push(new Date(item3.InleesTijd).toLocaleTimeString());
     }
 
-    console.log("Dit zijn de values :", values2);
-    console.log("Dit zijn de tijden :", times2);
+    console.log("Dit zijn de values : " ,values2)
+    console.log("Dit zijn de tijden : ",times2)
 
     showChartsVersnelling(values2, times2);
 };
 
+
+// Update map with historical data
 const updateMapWithHistoricalData = function(coordinates) {
+    // Clear existing route and points
     window.gpsDataList = coordinates;
     window.points = coordinates.map(coord => ({
         "type": "Feature",
@@ -524,22 +465,14 @@ const updateMapWithHistoricalData = function(coordinates) {
 
     if (window.map.getSource('points')) {
         window.map.getSource('points').setData({
-            "type": "FeatureCollection",
+            "type": "FeatureCollection",    
             "features": window.points
         });
     }
 
+    // Center the map on the first coordinate if available
     if (coordinates.length > 0) {
         window.map.setCenter(coordinates[0]);
-    }
-};
-
-const toggleChartsVisibility = function(show) {
-    const chartsContainer = document.getElementById('chartsContainer');
-    if (show) {
-        chartsContainer.classList.remove('display-none');
-    } else {
-        chartsContainer.classList.add('display-none');
     }
 };
 
@@ -549,17 +482,37 @@ const init = function () {
 
     document.querySelector('.js-sessionid').addEventListener('change', function () {
         let RitID = this.value;
+
         console.log(this.value);
 
-        if (RitID) {
-            toggleChartsVisibility(true);
-            console.log('Selected Licht session ID:', RitID);
-            handleData(`http://${lanIP}/api/v1/licht/${RitID}/`, fetchLDR);
-            handleData(`http://${lanIP}/api/v1/GPS/${RitID}/`, fetchGPS);
-            handleData(`http://${lanIP}/api/v1/versnelling/${RitID}/`, fetchVersnelling);
-        } else {
-            toggleChartsVisibility(false);
-        }
+        const sessionid = 1;
+
+        console.log('Selected Licht session ID:', RitID);
+
+        handleData(`http://${lanIP}/api/v1/licht/${RitID}/`, fetchLDR);
+    }); 
+
+    document.querySelector('.js-sessionid2').addEventListener('change', function () {
+        let RitID = this.value;
+
+        console.log(this.value);
+
+        const sessionid = 1;
+
+        console.log('Selected GPS session ID:', RitID);
+
+        handleData(`http://${lanIP}/api/v1/GPS/${RitID}/`, fetchGPS);
+    });
+        document.querySelector('.js-sessionid3').addEventListener('change', function () {
+        let RitID = this.value;
+
+        console.log(this.value);
+
+        const sessionid = 1;
+
+        console.log('Selected Versnelling session ID:', RitID);
+
+        handleData(`http://${lanIP}/api/v1/versnelling/${RitID}/`, fetchVersnelling);
     });
 };
 

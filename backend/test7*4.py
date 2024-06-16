@@ -22,7 +22,7 @@ class SevenSegmentDisplay:
         self.shift_reg_clck_input = 12  # SH_CP
         self.master_reset = 17  # MR (Active LOW)
 
-        self.digit_pins = [ 6,13,19,26]  # DIG1, DIG2, DIG3, DIG4
+        self.digit_pins = [6, 13, 19, 26]  # DIG1, DIG2, DIG3, DIG4
 
         self.setup()
 
@@ -66,33 +66,15 @@ class SevenSegmentDisplay:
         for i, pin in enumerate(self.digit_pins):
             GPIO.output(pin, GPIO.LOW if i == digit else GPIO.HIGH)
 
-    def display_speed(self, speed_mps):
-        # Converteer snelheid van m/s naar km/h en splits in cijfers
-        speed_kmph = speed_mps * 3.6
-        speed_str = f"{speed_kmph:05.2f}"  # Formatteer naar 5.2f, bv: "012.34"
-        #print('dit is de snelheid: ', speed_str)
-        
-        speed_str = speed_str.replace(".", "")  # Verwijder de punt voor display
-
-        for digit in range(4):
-            digit_value = speed_str[digit]
-            pattern = self.digit_patterns[digit_value]
-            if digit == 1:  # Voeg decimale punt toe aan het tweede cijfer
-                pattern |= 0b00000001
-            #print(f"Digit {digit}: {digit_value} - Pattern: {bin(pattern)}")  # Debugging output
-            self.write_one_byte(pattern)
-            self.select_digit(digit)
-            time.sleep(0.005)  # Delay for persistence of vision
-
-    def clear_display(self):
-        for digit in range(4):
-            self.write_one_byte(0b00000000)
-            self.select_digit(digit)
-            time.sleep(0.005)
+    def display_test(self):
+        for pattern in self.digit_patterns.values():
+            for digit in range(4):
+                self.write_one_byte(pattern)
+                self.select_digit(digit)
+                time.sleep(0.5)
 
     def cleanup(self):
         self.clear_display()
-        # Specifieke pinnen opruimen
         used_pins = [self.data_input, self.output_enable, self.storage_reg_clck_input, self.shift_reg_clck_input, self.master_reset] + self.digit_pins
         for pin in used_pins:
             GPIO.setup(pin, GPIO.IN)
@@ -100,32 +82,12 @@ class SevenSegmentDisplay:
 if __name__ == "__main__":
     display = SevenSegmentDisplay()
 
-    # Lijst van gesimuleerde snelheden in m/s
-    simulated_speeds_mps = [
-        10.23, 0.062, 0.062, 0.062, 0.062, 1.228, 1.709, 2.001,
-        1.788, 1.334, 1.095, 0.693, 0.271, 0.301, 0.247, 0.122, 0.068, 0.066,
-        0.055, 0.13, 0.038, 0.076, 0.061, 0.083, 0.146, 0.097, 0.09, 0.128,
-        0.034, 0.035
-    ]
-
     try:
         while True:
-            display.write_one_byte(0b11111111)
-            time.sleep(1)
-            print(1)
-            display.write_one_byte(0)
-            time.sleep(1)
-            print(2)
-
-            # for speed_mps in simulated_speeds_mps:
-            #     for x in range(50):
-            #         display.display_speed(speed_mps)
-            #     #time.sleep(1)  # Delay before showing the next speed
-
+            display.display_test()
     except KeyboardInterrupt as e:
         print(e)
-
     finally:
-        GPIO.cleanup()
+        display.cleanup()
 
     print("Script has stopped!!!")

@@ -162,3 +162,22 @@ Vragen voor dit gesprek:
 Dit is de feedback op mijn vragen.
 
 - feedback 1: feedback is niet doorgegaan omdat ik niet had gezien dat het gesprek via Teams was en daardoor spijtig genoeg gemist. Zal nieuwe gesprek boeken.
+
+## MV3 (Datum: 11/06/2024)
+
+Lector: Pieter-Jan Beeckman, Stijn Walcarius , Frederik Waeyaert
+
+Vragen voor dit gesprek:
+
+- [x] vraag 1: Geen vragen maar voorstellen van het project
+- [x] vraag 2:
+
+Dit is de feedback op mijn vragen.
+
+- feedback 1: De grafieken hebben nog astitels nodig !
+- feedback 2: website responsive maken
+- feedback 3: instructables verder op orde brengen
+- feedback 4: frontend afwerken
+- feedback 5: No room for error !
+
+
