@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
 
 <head>
@@ -12,11 +13,26 @@
 
 <body>
     <div class="navbar">
-        <div class="logo">I-track</div>
-        <div class="nav-links">
-            <a href="index.html">Home</a>
-            <a href="track.html">Track</a>
-            <a href="history.html">History</a>
+        <div class="navbar__navigation">
+            <div class="logo">
+                <img src="/images/logov3.png" alt="I-track Logo">
+            </div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="track.html">Track</a>
+                <a href="history.html">History</a>
+            </div>
+        </div>
+        <div class="tracks">
+            <div class="track-meters"><span id="distance">0</span> meters</div>
+            <div class="track-timer"><span class="track-timer--text">Duration</span>
+                <span class="track-timer--timer" id="timer">00:00:00</span>
+            </div>
+        </div>
+        <div class="action-button-wrapper">
+            <button id="startButton" class="track-start-button action-button">Start</button>
+            <button id="stopButton"
+                class="track-start-button action-button action-button--deactivate hidden">Stop</button>
         </div>
     </div>
 
@@ -24,45 +40,49 @@
         <h1>Sensor Data</h1>
         <div class="track-info">
             <div class="track-header">Current Session</div>
-            <div class="track-meters"><span id="distance">0</span> meters</div>
-            <div class="track-timer">Duration: <span id="timer">00:00:00</span></div>
-            <button id="startButton" class="track-start-button">Start</button>
-            <button id="stopButton" class="track-start-button">Stop</button>
         </div>
 
-        <div id="ldrContainer" class="hidden">
-            <div class="detail-box">
-                <div class="detail-header">Licht:</div>
-                <div class="detail-content">LDR waarde: <span id="ldr">0</span></div>
+        <div id="titleContainer" class="hidden">
+            <label for="rideTitle">Rit Titel: </label>
+            <input type="text" id="rideTitle" name="rideTitle" placeholder="Voer de titel van de rit in">
+        </div>
+
+        <div class="container-grid">
+            <div id="ldrContainer" class="hidden">
+                <div class="detail-box">
+                    <div class="detail-header">Licht</div>
+                    <div class="detail-content"><span id="ldr">0</span></div>
+                </div>
             </div>
-        </div>
 
-        <div id="mpuContainer" class="hidden">
-            <div class="detail-box">
-                <div class="detail-header">Versnelling:</div>
-                <div class="detail-content">
-                    <p class="hidden">Timestamp: <span id="mpu6050-timestamp">0</span></p>
-                    <p>Versnelling: <span id="mpu6050-accel-total">0</span> m/s^2</p>
+            <div id="mpuContainer" class="hidden">
+                <div class="detail-box">
+                    <div class="detail-header">Versnelling:</div>
+                    <div class="detail-content">
+                        <p class="hidden">Timestamp: <span id="mpu6050-timestamp">0</span></p>
+                        <p><span id="mpu6050-accel-total">0</span> m/s&sup2</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="gpsContainer" class="hidden">
+                <div class="detail-box">
+                    <div class="detail-header">Snelheid:</div>
+                    <div class="detail-content">
+                        <p><span id="gps-speed">0</span> km/h</p>
+                        <p class="hidden">Snelheid: <span id="gps-long">0</span> km/h</p>
+                        <p class="hidden">Snelheid: <span id="gps-Lat">0</span> km/h</p>
+                    </div>
+                </div>
+            </div>
+            <div id="mapContainer" class="hidden">
+                <div class="map-box">
+                    <div class="detail-header">Map</div>
+                    <div class="google-map" id="map" style="height: 400px;"></div>
                 </div>
             </div>
         </div>
 
-        <div id="gpsContainer" class="hidden">
-            <div class="detail-box">
-                <div class="detail-header">Snelheid:</div>
-                <div class="detail-content">
-                    <p>Snelheid: <span id="gps-speed">0</span> km/h</p>
-                    <p class="hidden">Snelheid: <span id="gps-long">0</span> km/h</p>
-                    <p class="hidden">Snelheid: <span id="gps-Lat">0</span> km/h</p>
-                </div>
-            </div>
-        </div>
-<div id="mapContainer" class="hidden">
-        <div class="map-box" >
-            <div class="detail-header">Map</div>
-            <div id="map" style="height: 400px;"></div>
-        </div>
-</div>
         <div>
             <div class="js-chart"></div>
         </div>
