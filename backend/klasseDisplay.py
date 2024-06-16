@@ -70,7 +70,7 @@ class SevenSegmentDisplay:
         # Converteer snelheid van m/s naar km/h en splits in cijfers
         speed_kmph = speed_mps * 3.6
         speed_str = f"{speed_kmph:05.2f}"  # Formatteer naar 5.2f, bv: "012.34"
-        print('dit is de snelheid: ', speed_str)
+        #print('dit is de snelheid: ', speed_str)
         
         speed_str = speed_str.replace(".", "")  # Verwijder de punt voor display
 

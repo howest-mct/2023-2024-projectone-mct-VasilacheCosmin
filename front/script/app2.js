@@ -119,6 +119,7 @@ const listenToUI = function () {
   const mpuContainer = document.getElementById('mpuContainer');
   const gpsContainer = document.getElementById('gpsContainer');
   const searchButton = document.getElementById('searchButton');
+  const mapContainer = document.getElementById('mapContainer');
 
   if (startButton && stopButton && ldrContainer && mpuContainer && gpsContainer) {
     startButton.addEventListener('click', function() {
@@ -127,6 +128,7 @@ const listenToUI = function () {
       ldrContainer.classList.remove('hidden');
       mpuContainer.classList.remove('hidden');
       gpsContainer.classList.remove('hidden');
+      mapContainer.classList.remove('hidden');
       totalDistance = 0; // Reset distance at the start of measurement
       document.getElementById('distance').textContent = totalDistance; // Reset distance display
     });
@@ -137,6 +139,7 @@ const listenToUI = function () {
       ldrContainer.classList.add('hidden');
       mpuContainer.classList.add('hidden');
       gpsContainer.classList.add('hidden');
+      mapContainer.classList.remove('hidden');
     });
   }
 
@@ -181,24 +184,18 @@ const listenToSocket = function () {
     console.log('Data LDR ontvangen', data);
     const ldrElement = document.getElementById('ldr');
     if (ldrElement) {
-      ldrElement.innerHTML = data.ldr_value.toFixed(2);
+      ldrElement.innerHTML = data.ldr_value.toFixed(0);
     }
   });
 
   socketio.on('B2F_MPU6050_DATA', function(data) {
     console.log('Data MPU ontvangen', data);
     const timestampElement = document.getElementById('mpu6050-timestamp');
-    const accelXElement = document.getElementById('mpu6050-accel-x');
-    const accelYElement = document.getElementById('mpu6050-accel-y');
-    const accelZElement = document.getElementById('mpu6050-accel-z');
-    const speedElement = document.getElementById('mpu6050-speed');
+    const accelTotalElement = document.getElementById('mpu6050-accel-total');
 
-    if (timestampElement && accelXElement && accelYElement && accelZElement && speedElement) {
+    if (timestampElement && accelTotalElement ) {
       timestampElement.innerHTML = 'Timestamp: ' + data.timestamp;
-      accelXElement.innerHTML = data.accel_x.toFixed(2);
-      accelYElement.innerHTML = data.accel_y.toFixed(2);
-      accelZElement.innerHTML = data.accel_z.toFixed(2);
-      speedElement.innerHTML = data.speed.toFixed(2);
+      accelTotalElement.innerHTML = data.total_accel.toFixed(2);
     }
   });
 
@@ -207,11 +204,15 @@ const listenToSocket = function () {
     const latElement = document.getElementById('gps-Lat');
     const lonElement = document.getElementById('gps-long');
     const speedElement = document.getElementById('gps-speed');
+    // console.log('Dit zijn de elementen speed - long - lat ')
+    // console.log(speedElement)
+    // console.log(lonElement)
+    // console.log(latElement)
 
     if (latElement && lonElement && speedElement) {
-      latElement.innerHTML = parseFloat(data.lat).toFixed(6);
-      lonElement.innerHTML = parseFloat(data.lon).toFixed(6);
-      speedElement.innerHTML = parseFloat(data.speed).toFixed(2);
+      latElement.innerHTML = data.lat.toFixed(6);
+      lonElement.innerHTML = data.lon.toFixed(6);
+      speedElement.innerHTML = data.speed.toFixed(2);
     }
 
     // Update the route and points on the map

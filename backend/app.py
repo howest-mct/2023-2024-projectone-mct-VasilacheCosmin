@@ -133,6 +133,7 @@ def read_and_emit_gps_data(gps_client, socketio, stop_event):
                     print(f"Emitting GPS data: {gps_data}")
                     socketio.emit('B2F_GPS_DATA', gps_data)
                     save_gps_data_to_db(timestamp, gps_data['lat'], gps_data['lon'], gps_data['speed'], ritid)
+                    #time.sleep(5)
     except KeyboardInterrupt:
         print("GPS data reading stopped")
     except Exception as e:
