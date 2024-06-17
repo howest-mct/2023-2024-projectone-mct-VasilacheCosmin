@@ -152,8 +152,24 @@ def get_ip_addresses():
             ip_addresses.append(ip_address)
     return ip_addresses
 
+def get_wlan0_ip_address():
+    """
+    Retrieves the IPv4 address assigned to the wlan0 interface.
+    """
+    try:
+        ip_output = subprocess.check_output(["ip", "-4", "addr", "show", "wlan0"]).decode("utf-8")
+        for line in ip_output.split("\n"):
+            if "inet" in line:
+                ip_address = line.split()[1].split("/")[0]
+                return ip_address
+    except subprocess.CalledProcessError:
+        return None
+
 def display_info():
     global duration
+    max_attempts = 10
+    attempts = 0
+
     while True:
         lcd.clear_display()
         if session_active:
@@ -163,15 +179,28 @@ def display_info():
             lcd.write_message("Duration:", 1)
             lcd.write_message(duration_str, 2)
         else:
-            ip_addresses = get_ip_addresses()
-            if len(ip_addresses) > 2:
-                ip_address = ip_addresses[2]
+            wlan0_ip_address = None
+            while attempts < max_attempts:
+                wlan0_ip_address = get_wlan0_ip_address()
+                if wlan0_ip_address:
+                    break
+                else:
+                    lcd.clear_display()
+                    lcd.write_message("Fetching IP...", 1)
+                    time.sleep(5)  # Wait for 5 seconds before retrying
+                attempts += 1
+
+            if wlan0_ip_address:
+                ip_address = wlan0_ip_address
             else:
                 ip_address = "No WLAN IP"
+                
             if len(ip_address) > 16:
                 ip_address = ip_address[:16]
+
             lcd.write_message("IP wlan0:", 1)
             lcd.write_message(ip_address, 2)
+        
         time.sleep(1)  # Update every second
 
 def start_timer():

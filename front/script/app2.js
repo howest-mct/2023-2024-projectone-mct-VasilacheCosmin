@@ -127,6 +127,7 @@ console.log('Startknop ingedrukt');
 startMeasuring();
 ldrContainer.classList.remove('hidden');
 mpuContainer.classList.remove('hidden');
+mpuContainer.classList.add('show');
 gpsContainer.classList.remove('hidden');
 mapContainer.classList.remove('hidden');
 startButton.classList.add('hidden');
@@ -141,6 +142,7 @@ stopButton.addEventListener('click', function() {
   stopMeasuring();
   ldrContainer.classList.add('hidden');
   mpuContainer.classList.add('hidden');
+  mpuContainer.classList.remove('show');
   gpsContainer.classList.add('hidden');
   mapContainer.classList.add('hidden');
   startButton.classList.remove('hidden');
