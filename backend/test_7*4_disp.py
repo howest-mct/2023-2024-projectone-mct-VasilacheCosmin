@@ -8,7 +8,11 @@ stcp_pin = 25
 shcp_pin = 12
 mr_pin = 17
 
-digitPins = [26, 19, 13, 6]  # Pinnen verbonden met de digitale pinnen van de 7-segment display
+digitPins = [ 13, 6,26, 19]  # Pinnen verbonden met de digitale pinnen van de 7-segment display
+
+
+
+
 
 # Define the 74HC595 class
 class ShiftRegister:
@@ -82,7 +86,7 @@ def display_counter(shift, start_digit):
         shift.write_one_byte(digit_segments[digits[i]])
         shift.copy_to_storage_register()
         GPIO.output(digitPins[i], GPIO.LOW)  # Activate the current digit
-        time.sleep(0.005)  # Small delay to ensure the digit is displayed
+        time.sleep(1)  # Small delay to ensure the digit is displayed
         GPIO.output(digitPins[i], GPIO.HIGH)  # Deactivate the current digit
 
 # Functie om de counter te updaten

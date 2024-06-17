@@ -16,7 +16,6 @@ import RPi.GPIO as GPIO
 from gps import GPSClient
 from klasseDisplay import SevenSegmentDisplay 
 
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'Thisismyveryverysecretkeyformyflask'
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent', ping_interval=0.5)
@@ -38,6 +37,10 @@ session_active = False
 duration = 0
 
 GPIO.setmode(GPIO.BCM)
+shutdown_pin = 5
+GPIO.setup(shutdown_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+Aan_Uit_pin = 22
+GPIO.setup(Aan_Uit_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # Voor je het backend draait moet je eerst 'cd front/' -> "python3 -m http.server 9000"
 # Dit gaat ervoor zorgen dat de frontend draait op poort 9000 ipv 5501 (poort 5501 wilt niet werken for some reason)
@@ -50,11 +53,8 @@ def initialize_sensors():
     gps_client = GPSClient()
     display7 = SevenSegmentDisplay()
 
-
-
 def read_and_emit_mpu_data(mpu, socketio, stop_event):
     interval = 1
-    vx, vy, vz = 0, 0, 0
     prev_time = time.time()
     mpu.calibrate_mpu6050()
 
@@ -71,22 +71,12 @@ def read_and_emit_mpu_data(mpu, socketio, stop_event):
             dt = current_time - prev_time
             prev_time = current_time
 
-            vx += accel_x * dt
-            vy += accel_y * dt
-            vz += accel_z * dt
+            # Bereken totale versnelling
+            total_accel = math.sqrt(accel_x**2 + accel_y**2 + accel_z**2)
 
-            if abs(accel_x) < acceleration_threshold:
-                vx *= 0.99
-            if abs(accel_y) < acceleration_threshold:
-                vy *= 0.99
-            if abs(accel_z) < acceleration_threshold:
-                vz *= 0.99
-
-            instant_speed = math.sqrt(vx**2 + vy**2 + vz**2)
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-            print(f"Versnelling: x={accel_x:.2f}, y={accel_y:.2f}, z={accel_z:.2f}")
-            print(f"Ogenblikkelijke snelheid: {instant_speed:.2f} m/s")
+            print(f"Versnelling: totaal={total_accel:.2f} m/s²")
             print(f"Timestamp: {timestamp}")
 
             rit_data = DataRepository.get_ritID()
@@ -94,13 +84,18 @@ def read_and_emit_mpu_data(mpu, socketio, stop_event):
             ritid = rit_data[0]['idRit']
 
             # Sla de gegevens op in de database
-            save_mpu_data_to_db(timestamp, accel_x, accel_y, accel_z, ritid)
+            save_mpu_data_to_db(timestamp, total_accel, ritid)
 
             # Emit de gegevens via SocketIO
-            socketio.emit('B2F_MPU6050_DATA', {'timestamp': timestamp, 'accel_x': accel_x, 'accel_y': accel_y, 'accel_z': accel_z, 'speed': instant_speed, 'ritid': ritid})
+            socketio.emit('B2F_MPU6050_DATA', {'timestamp': timestamp, 'total_accel': total_accel, 'ritid': ritid})
             time.sleep(interval)
     except KeyboardInterrupt:
         print("MPU6050 data reading stopped")
+
+# Functie om MPU6050 gegevens op te slaan in de database, aangepast voor een enkele versnelling
+def save_mpu_data_to_db(timestamp, total_accel, ritid):
+    DataRepository.save_mpu_data(timestamp, total_accel, ritid)
+
 
 def read_and_emit_ldr_data(mcp, socketio, stop_event):
     try:
@@ -116,7 +111,6 @@ def read_and_emit_ldr_data(mcp, socketio, stop_event):
             time.sleep(1)
     except KeyboardInterrupt:
         print("LDR data reading stopped")
-
 
 def read_and_emit_gps_data(gps_client, socketio, stop_event):
     try:
@@ -141,6 +135,7 @@ def read_and_emit_gps_data(gps_client, socketio, stop_event):
                     print(f"Emitting GPS data: {gps_data}")
                     socketio.emit('B2F_GPS_DATA', gps_data)
                     save_gps_data_to_db(timestamp, gps_data['lat'], gps_data['lon'], gps_data['speed'], ritid)
+                    #time.sleep(5)
     except KeyboardInterrupt:
         print("GPS data reading stopped")
     except Exception as e:
@@ -157,53 +152,22 @@ def get_ip_addresses():
             ip_addresses.append(ip_address)
     return ip_addresses
 
-def display_info():
-    global duration
+def display_ip():
     while True:
-        lcd.clear_display()
-        if session_active:
-            hours, remainder = divmod(duration, 3600)
-            minutes, seconds = divmod(remainder, 60)
-            duration_str = f"{hours:02}:{minutes:02}:{seconds:02}"
-            lcd.write_message("Duration:", 1)
-            lcd.write_message(duration_str, 2)
+        ip_addresses = get_ip_addresses()
+        if len(ip_addresses) > 2:
+            ip_address = ip_addresses[2]
         else:
-            ip_addresses = get_ip_addresses()
-            if len(ip_addresses) > 2:
-                ip_address = ip_addresses[2]
-            else:
-                ip_address = "No WLAN IP"
-            if len(ip_address) > 16:
-                ip_address = ip_address[:16]
-            lcd.write_message("IP wlan0:", 1)
-            lcd.write_message(ip_address, 2)
-        time.sleep(1)  # Update every second
-
-def start_timer():
-    global session_active, duration
-    session_active = True
-    duration = 0  # Reset duration at the start
-    start_time = time.time()
-    while session_active:
-        duration = int(time.time() - start_time)
-        time.sleep(1)
-
-def stop_timer():
-    global session_active
-    session_active = False
-
-def start_ride():
-    # Start the timer in a new thread to keep track of the duration
-    import threading
-    timer_thread = threading.Thread(target=start_timer)
-    timer_thread.start()
-
-def stop_ride():
-    stop_timer()
+            ip_address = "No WLAN IP"
+        if len(ip_address) > 16:
+            ip_address = ip_address[:16]  # Zorg ervoor dat het IP-adres niet langer is dan 16 tekens
+        lcd.write_message("IP wlan0:", 1)
+        lcd.write_message(ip_address, 2)
+        time.sleep(10)  # Update every 10 seconds
 
 # Functie om MPU6050 gegevens op te slaan in de database
-def save_mpu_data_to_db(timestamp, accel_x, accel_y, accel_z,ritid):
-    DataRepository.save_mpu_data(timestamp, accel_x, accel_y, accel_z,ritid)
+def save_mpu_data_to_db(timestamp, accel_total,ritid):
+    DataRepository.save_mpu_data(timestamp, accel_total,ritid)
 
 # Functie om LDR gegevens op te slaan in de database
 def save_ldr_data_to_db(timestamp, ldr_value, ritid):
@@ -217,12 +181,9 @@ def save_gps_data_to_db(timestamp, lat,lon,speed, ritid):
 def hallo():
     return render_template('index.html')
 
-
 @app.route('/index2.html')
 def index2():
     return render_template('index2.html')
-
-
 
 @app.route(f'{endpoint}/licht/<int:rit_id>/', methods=['GET'])
 def get_licht_by_rit_id(rit_id):
@@ -233,7 +194,27 @@ def get_licht_by_rit_id(rit_id):
         else:
             return jsonify({"error": "Data not found"}), 404
         
+@app.route(f'{endpoint}/GPS/<int:rit_id>/', methods=['GET'])
+def get_gps_by_rit_id(rit_id):
+    if request.method == 'GET':
+        data = DataRepository.read_gps_by_rit_id(rit_id)
+        if data:
+            return jsonify(bestemmingen=data), 200
+        else:
+            return jsonify({"error": "Data not found"}), 404
+        
 
+@app.route(f'{endpoint}/versnelling/<int:rit_id>/', methods=['GET'])
+def get_versnelling_by_rit_id(rit_id):
+    if request.method == 'GET':
+        data = DataRepository.read_versnelling_by_rit_id(rit_id)
+        if data:
+            return jsonify(bestemmingen=data), 200
+        else:
+            return jsonify({"error": "Data not found"}), 404
+        
+
+        
 @app.route(f'{endpoint}/licht/gemiddelde/', methods=['GET'])
 def get_gemiddelde_licht_per_rit():
     try:
@@ -269,8 +250,6 @@ def get_gemiddelde_licht_per_rit():
     except Exception as e:
         print("Exception occurred while processing the request")
         return jsonify({"error": str(e)}), 500
-    
-
 
 @app.route(f'{endpoint}/licht/today/', methods=['GET'])
 def get_today_licht():
@@ -291,8 +270,6 @@ def get_today_licht():
         print("Exception occurred while processing the request")
         return jsonify({"error": str(e)}), 500
 
-    
-
 @app.route(endpoint + '/licht/', methods=['GET'])
 def get_licht():
     if request.method == 'GET':
@@ -304,6 +281,32 @@ def read_alles_lichtintensiteit_byID():
     if request.method == 'GET':
         return jsonify(bestemmingen=DataRepository.read_alles_lichtintensiteit_byID()), 200
     # het is niet nodig om de andere methods te voorzien.
+
+
+@app.route(endpoint + '/versnelling/alleID/', methods=['GET'])
+def read_alles_versnelling_byID():
+    if request.method == 'GET':
+        return jsonify(bestemmingen=DataRepository.read_alles_versnelling_byID()), 200
+    # het is niet nodig om de andere methods te voorzien.
+
+@app.route(endpoint + '/GPS/alleID/', methods=['GET'])
+def read_alles_GPS_byID():
+    if request.method == 'GET':
+        return jsonify(bestemmingen=DataRepository.read_alles_GPS_byID()), 200
+    # het is niet nodig om de andere methods te voorzien.
+
+@app.route('/shutdown', methods=['POST'])
+def shutdown_socket():
+    shutdown(5)
+
+def shutdown(getal):
+    try:
+        print('Shutdown endpoint called')
+        subprocess.call(['sudo','shutdown','now'])
+        return "",200
+    except Exception as e:
+        print(f'Error occurd: {e}')
+        return str(e),500
 
 @socketio.on('connect')
 def initial_connection(auth):
@@ -328,8 +331,9 @@ def handle_start_measurement():
         
         print('Measurement started')
         print(start_time)
-        socketio.emit('measurement_started', {'status': 'started'})
+        emit('measurement_started', {'status': 'started'})
         
+
 @socketio.on('stop_measurement')
 def handle_stop_measurement():
     global reading_thread_stop_event, session_active
@@ -337,20 +341,11 @@ def handle_stop_measurement():
         reading_thread_stop_event.set()
         reading_thread.join()
         print('Measurement stopped')
-        emit('measurement_stopped', {'status': 'stopped'})
+        socketio.emit('measurement_stopped', {'status': 'stopped'})
         end_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         end_session(end_time)
         display7.clear_display()
 
-def aan_uit(channel):
-    print("test")
-    global reading_thread, reading_thread_stop_event
-    if reading_thread is None or not reading_thread.is_alive():
-        # Start metingen
-        handle_start_measurement()
-    else:
-        # Stop metingen
-        handle_stop_measurement()
 
 def save_session(timestamp):
     DataRepository.save_session(timestamp)
@@ -365,6 +360,8 @@ def webserver():
 if __name__ == '__main__':
     try:
         print("**** Starting APP ****")
+        GPIO.add_event_detect(shutdown_pin, GPIO.FALLING, callback=shutdown, bouncetime=200)
+        GPIO.add_event_detect(Aan_Uit_pin, GPIO.FALLING, callback=aan_uit, bouncetime=200)
         initialize_sensors()
         threading.Thread(target=display_info, daemon=True).start()  # Start LCD info display thread
         webserver()
