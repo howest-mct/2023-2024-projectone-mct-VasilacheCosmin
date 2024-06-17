@@ -33,6 +33,8 @@ prev_time = None
 ip_display_last_update = 0
 ip_display_state = 0
 ip_addresses = []
+session_active = False
+duration = 0
 
 GPIO.setmode(GPIO.BCM)
 shutdown_pin = 5
@@ -150,22 +152,82 @@ def get_ip_addresses():
             ip_addresses.append(ip_address)
     return ip_addresses
 
-def display_ip():
+def get_wlan0_ip_address():
+    """
+    Retrieves the IPv4 address assigned to the wlan0 interface.
+    """
+    try:
+        ip_output = subprocess.check_output(["ip", "-4", "addr", "show", "wlan0"]).decode("utf-8")
+        for line in ip_output.split("\n"):
+            if "inet" in line:
+                ip_address = line.split()[1].split("/")[0]
+                return ip_address
+    except subprocess.CalledProcessError:
+        return None
+
+def display_info():
+    global duration
+    max_attempts = 10
+    attempts = 0
+
     while True:
-        ip_addresses = get_ip_addresses()
-        if len(ip_addresses) > 2:
-            ip_address = ip_addresses[2]
+        lcd.clear_display()
+        if session_active:
+            hours, remainder = divmod(duration, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            duration_str = f"{hours:02}:{minutes:02}:{seconds:02}"
+            lcd.write_message("Duration:", 1)
+            lcd.write_message(duration_str, 2)
         else:
-            ip_address = "No WLAN IP"
-        if len(ip_address) > 16:
-            ip_address = ip_address[:16]  # Zorg ervoor dat het IP-adres niet langer is dan 16 tekens
-        lcd.write_message("IP wlan0:", 1)
-        lcd.write_message(ip_address, 2)
-        time.sleep(10)  # Update every 10 seconds
+            wlan0_ip_address = None
+            while attempts < max_attempts:
+                wlan0_ip_address = get_wlan0_ip_address()
+                if wlan0_ip_address:
+                    break
+                else:
+                    lcd.clear_display()
+                    lcd.write_message("Fetching IP...", 1)
+                    time.sleep(5)  # Wait for 5 seconds before retrying
+                attempts += 1
+
+            if wlan0_ip_address:
+                ip_address = wlan0_ip_address
+            else:
+                ip_address = "No WLAN IP"
+                
+            if len(ip_address) > 16:
+                ip_address = ip_address[:16]
+
+            lcd.write_message("IP wlan0:", 1)
+            lcd.write_message(ip_address, 2)
+        
+        time.sleep(1)  # Update every second
+
+def start_timer():
+    global session_active, duration
+    session_active = True
+    duration = 0  # Reset duration at the start
+    start_time = time.time()
+    while session_active:
+        duration = int(time.time() - start_time)
+        time.sleep(1)
+
+def stop_timer():
+    global session_active
+    session_active = False
+
+def start_ride():
+    # Start the timer in a new thread to keep track of the duration
+    import threading
+    timer_thread = threading.Thread(target=start_timer)
+    timer_thread.start()
+
+def stop_ride():
+    stop_timer()
 
 # Functie om MPU6050 gegevens op te slaan in de database
-#def save_mpu_data_to_db(timestamp, accel_x, accel_y, accel_z,ritid):
-#    DataRepository.save_mpu_data(timestamp, accel_x, accel_y, accel_z,ritid)
+def save_mpu_data_to_db(timestamp, accel_total,ritid):
+    DataRepository.save_mpu_data(timestamp, accel_total,ritid)
 
 # Functie om LDR gegevens op te slaan in de database
 def save_ldr_data_to_db(timestamp, ldr_value, ritid):
@@ -312,7 +374,7 @@ def initial_connection(auth):
 
 @socketio.on('start_measurement')
 def handle_start_measurement():
-    global reading_thread, reading_thread_stop_event, mpu, mcp
+    global reading_thread, reading_thread_stop_event, mpu, mcp, session_active, duration
     if reading_thread is None or not reading_thread.is_alive():
         start_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         save_session(start_time)
@@ -330,10 +392,15 @@ def handle_start_measurement():
         print('Measurement started')
         print(start_time)
         socketio.emit('measurement_started', {'status': 'started'})
+
+        # Start de timer voor de sessieduur
+        session_active = True
+        duration = 0
+        threading.Thread(target=start_timer, daemon=True).start()
         
 @socketio.on('stop_measurement')
 def handle_stop_measurement():
-    global reading_thread_stop_event
+    global reading_thread_stop_event, session_active
     if reading_thread and reading_thread.is_alive():
         reading_thread_stop_event.set()
         reading_thread.join()
@@ -342,6 +409,9 @@ def handle_stop_measurement():
         end_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         end_session(end_time)
         display7.clear_display()
+
+        # Stop de timer voor de sessieduur
+        session_active = False
 
 def aan_uit(channel):
     print("test")
@@ -369,7 +439,7 @@ if __name__ == '__main__':
         GPIO.add_event_detect(shutdown_pin, GPIO.FALLING, callback=shutdown, bouncetime=200)
         GPIO.add_event_detect(Aan_Uit_pin, GPIO.FALLING, callback=aan_uit, bouncetime=200)
         initialize_sensors()
-        threading.Thread(target=display_ip, daemon=True).start()  # Start LCD IP display thread
+        threading.Thread(target=display_info, daemon=True).start()  # Start LCD info display thread
         webserver()
     except KeyboardInterrupt:
         print('KeyboardInterrupt exception is caught')
